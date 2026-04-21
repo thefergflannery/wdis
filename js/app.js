@@ -35,8 +35,8 @@ function startTicker(){
 }
 
 function applyTheme(){
-  document.documentElement.setAttribute("data-theme",S.dark?"dark":"");
-  const btn=$id("theme-btn");if(btn)btn.textContent=S.dark?"☀ Light mode":"☾ Dark mode";
+  document.documentElement.classList.toggle("dark",S.dark);
+  const btn=$id("theme-btn");if(btn)btn.textContent=S.dark?"☀ Light":"☾ Dark";
 }
 
 window.go=p=>{S.phase=p;if(p==="quiz"&&S.cat===undefined)S.cat=0;render();};
@@ -84,7 +84,7 @@ window.toggleCompass=()=>{
     } else {
       const axes=computeAxes(S.answers);const hasAny=Object.keys(S.answers).length>0;
       const scored=matchParties(axes);
-      box.innerHTML=`<div class="compass-lbl">Live compass</div><canvas id="compass-canvas" style="width:100%;display:block;border-radius:8px"></canvas><div style="height:10px"></div><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><span class="side-section-lbl" style="margin-bottom:0">Party matches</span><button id="minor-toggle-btn" class="minor-toggle${S.showMinor?" on":""}" onclick="toggleMinor()">${S.showMinor?"Hide minor":"Show minor"}</button></div><div id="party-list-box">${sidePartyListHTML(scored,hasAny)}</div>`;
+      box.innerHTML=`<div class="text-2xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-600 mb-2">Compass</div><canvas id="compass-canvas" class="w-full rounded-xl"></canvas><div class="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800"><div class="flex items-center justify-between mb-2"><span class="text-2xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-600">Party matches</span><button id="minor-toggle-btn" onclick="toggleMinor()" class="text-2xs font-semibold px-2 py-0.5 rounded-full border cursor-pointer ${S.showMinor?"border-slate-300 text-slate-600":"border-slate-200 text-slate-400"}">${S.showMinor?"Hide minor":"Show minor"}</button></div><div id="party-list-box">${sidePartyListHTML(scored,hasAny)}</div></div>`;
       requestAnimationFrame(()=>drawCompass("compass-canvas",axes,236,236));
     }
   }
@@ -92,7 +92,7 @@ window.toggleCompass=()=>{
 window.toggleMinor=()=>{
   S.showMinor=!S.showMinor;
   const btn=$id("minor-toggle-btn");
-  if(btn){btn.textContent=S.showMinor?"Hide minor":"Show minor";btn.className=S.showMinor?"minor-toggle on":"minor-toggle";}
+  if(btn)btn.textContent=S.phase==="results"?(S.showMinor?"Hide minor parties":"Show minor parties"):(S.showMinor?"Hide minor":"Show minor");
   if(S.phase==="quiz"){
     const axes=computeAxes(S.answers);const hasAny=Object.keys(S.answers).length>0;
     const scored=matchParties(axes);
