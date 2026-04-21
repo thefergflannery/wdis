@@ -5,7 +5,7 @@ function computeAxes(a){
 }
 
 function computePos(axes){
-  const ea=["econ","housing","health"],sa=["soc","nat","fuel"];
+  const ea=["econ","housing","health","tax","employment"],sa=["soc","nat","fuel","rural"];
   let ex=0,ec=0,sx=0,sc=0;
   ea.forEach(a=>{if(axes[a]!==undefined){ex+=axes[a];ec++;}});
   sa.forEach(a=>{if(axes[a]!==undefined){sx+=axes[a];sc++;}});
@@ -16,7 +16,7 @@ function matchParties(axes){
   const hasAny=Object.keys(axes).length>0;
   return PARTIES.map(p=>{
     if(!hasAny)return{...p,match:50};
-    const axKeys=["econ","soc","nat","climate","housing","health","fuel","animals","europe","culture","transport","crime","childcare"];
+    const axKeys=["econ","soc","nat","climate","housing","health","fuel","animals","europe","culture","transport","crime","childcare","tax","employment","rural"];
     let diff=0,n=0;
     axKeys.forEach(ax=>{if(axes[ax]!==undefined){diff+=Math.abs(axes[ax]-p[ax]);n++;}});
     const avg=n>0?diff/n:3;

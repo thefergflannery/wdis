@@ -70,7 +70,8 @@ function renderIntro(){
 <p style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:0.09em;margin-bottom:16px">Republic of Ireland · Political Compass · April 2026</p>
 <h1>Where do you<br>stand?</h1>
 <p style="margin-bottom:10px;font-size:16px">All 20 registered Irish parties mapped against real policy positions — including the April 2026 fuel crisis.</p>
-<p style="font-size:13px;color:var(--text3);margin-bottom:24px">Compass updates live as you answer. No data stored.</p>
+<p style="font-size:13px;color:var(--text3);margin-bottom:12px">Compass updates live as you answer. No data stored.</p>
+<p style="font-size:12px;color:var(--text3);background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:24px;line-height:1.6">This tool is not politically affiliated. It's built to help you cut through the noise — map your own views against the policies parties actually stand for.</p>
 <div class="mode-row">
 <button class="mode-btn" onclick="startQuiz('quick')">
 <div class="mode-title">Quick</div>
@@ -79,8 +80,8 @@ function renderIntro(){
 </button>
 <button class="mode-btn mode-btn-full" onclick="startQuiz('full')">
 <div class="mode-title">Full</div>
-<div class="mode-desc">22 questions · ~8 min</div>
-<div class="mode-note">All topics in depth — more accurate result</div>
+<div class="mode-desc">56 questions · ~15 min</div>
+<div class="mode-note">All topics in depth — most accurate result</div>
 </button>
 </div>
 <hr>
