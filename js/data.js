@@ -1,11 +1,11 @@
 const TICKS=[
-  {cls:"tick-live",tag:"LIVE",text:"Fuel protests ease  - Whitegate refinery Cork back online after €755m govt relief package"},
-  {cls:"tick-pol",tag:"POLITICS",text:"SF no-confidence motion defeated 92–78 · Coalition FF/FG + independents survives"},
-  {cls:"tick-eco",tag:"FUEL",text:"~600 of 1,500 filling stations ran dry at crisis peak · Full supply recovery may take 10 days"},
-  {cls:"tick-eco",tag:"ECONOMY",text:"Diesel +28%, petrol +25% since Iran war & Strait of Hormuz closure began in March"},
-  {cls:"tick-pol",tag:"SOCIAL",text:"320,000 households in electricity arrears · ALONE CEO: 'energy poverty is a public health issue'"},
-  {cls:"tick-pol",tag:"POLITICS",text:"Michael Healy-Rae resigns as Minister of State: 'govt no longer represents Irish people'"},
-  {cls:"tick-eco",tag:"ECONOMY",text:"CSO: cost-of-living basket 24% higher than 2019 · Real wages still below pre-Covid purchasing power"},
+  {cls:"tick-live",tag:"LIVE",text:"Fuel protests ease - Whitegate refinery Cork back online after €755m govt relief package",url:"https://www.rte.ie/news/ireland/"},
+  {cls:"tick-pol",tag:"POLITICS",text:"SF no-confidence motion defeated 92–78 · Coalition FF/FG + independents survives",url:"https://www.rte.ie/news/politics/"},
+  {cls:"tick-eco",tag:"FUEL",text:"~600 of 1,500 filling stations ran dry at crisis peak · Full supply recovery may take 10 days",url:"https://www.irishtimes.com/business/"},
+  {cls:"tick-eco",tag:"ECONOMY",text:"Diesel +28%, petrol +25% since Iran war & Strait of Hormuz closure began in March",url:"https://www.irishtimes.com/economy/"},
+  {cls:"tick-pol",tag:"SOCIAL",text:"320,000 households in electricity arrears · ALONE CEO: 'energy poverty is a public health issue'",url:"https://www.rte.ie/news/ireland/"},
+  {cls:"tick-pol",tag:"POLITICS",text:"Michael Healy-Rae resigns as Minister of State: 'govt no longer represents Irish people'",url:"https://www.rte.ie/news/politics/"},
+  {cls:"tick-eco",tag:"ECONOMY",text:"CSO: cost-of-living basket 24% higher than 2019 · Real wages still below pre-Covid purchasing power",url:"https://www.cso.ie/en/releasesandpublications/"},
 ];
 
 const PARTIES=[

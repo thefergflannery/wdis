@@ -74,8 +74,25 @@ function sideAxisHTML(axes){
   }).join("");
 }
 
+function newsGridHTML(){
+  const tagColors={
+    'tick-live':'#ff3c3c','tick-pol':'#3cffd0','tick-eco':'#f0a500'
+  };
+  const tagText={
+    'tick-live':'#ffffff','tick-pol':'#000000','tick-eco':'#000000'
+  };
+  return`<div style="${label};margin-bottom:20px">LATEST NEWS — APRIL 2026</div>
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:64px">
+${TICKS.map(t=>`<a href="${t.url||'#'}" target="_blank" rel="noopener" style="display:flex;flex-direction:column;gap:12px;background:${C.surface};border:1px solid ${C.border};border-radius:20px;padding:20px 22px;text-decoration:none;transition:border-color .2s" onmouseover="this.style.borderColor='${C.text3}'" onmouseout="this.style.borderColor='${C.border}'">
+<span style="${mono};font-size:10px;font-weight:700;padding:3px 10px;border-radius:6px;background:${tagColors[t.cls]||C.border};color:${tagText[t.cls]||C.text1};letter-spacing:.1em;align-self:flex-start">${t.tag}</span>
+<p style="font-size:14px;font-weight:600;color:${C.text1};line-height:1.55;margin:0;flex:1">${t.text}</p>
+<span style="${mono};font-size:11px;color:${C.text3};letter-spacing:.06em">READ MORE →</span>
+</a>`).join("")}
+</div>`;
+}
+
 function legendHTML(){
-  return`<div style="${label};margin-bottom:16px">PARTY KEY — ALL 20 PARTIES</div>
+  return`<div style="${label};margin-bottom:16px">CURRENTLY REGISTERED PARTIES — AS OF APRIL 2026</div>
 <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin-bottom:40px">${PARTIES.map(p=>`<div style="display:flex;align-items:flex-start;gap:10px;background:${C.surface};border:1px solid ${C.border};border-radius:16px;padding:12px 14px">
 <div style="font-size:12px;font-weight:700;flex-shrink:0;width:38px;padding-top:1px;color:${p.col}">${p.abbr}</div>
 <div>
@@ -88,7 +105,7 @@ function headerHTML(){
   return`<div style="position:sticky;top:0;z-index:50;background:${C.canvas}">
 <div style="background:${C.surface};border-bottom:1px solid ${C.border};padding:7px 32px;display:flex;gap:12px;align-items:center;overflow:hidden">
 <span class="tick-tag tick-live" id="tick-tag">LIVE</span>
-<span class="tick-text" id="tick-text" style="font-size:12px;color:${C.text2};flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Loading...</span>
+<span class="tick-text" id="tick-text" style="font-size:12px;color:${C.text2};flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><a id="tick-link" href="#" target="_blank" rel="noopener" style="color:inherit;text-decoration:none">Loading...</a></span>
 <span style="${mono};font-size:12px;color:${C.text3};flex-shrink:0;letter-spacing:.08em">20 APR 2026</span>
 </div>
 <nav style="display:flex;align-items:center;padding:14px 32px;border-bottom:1px solid ${C.border}">
@@ -148,6 +165,11 @@ function renderIntro(){
   <!-- LEGEND -->
   <div style="padding:56px 0 0">
     ${legendHTML()}
+  </div>
+
+  <!-- NEWS GRID -->
+  <div style="padding-top:16px">
+    ${newsGridHTML()}
   </div>
 
   <!-- TOPIC PILLS -->

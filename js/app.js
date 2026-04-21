@@ -23,8 +23,12 @@ let tickIdx=0,tickTimer=null;
 function startTicker(){
   if(tickTimer)clearInterval(tickTimer);
   function show(){
-    const tt=$id("tick-tag"),tx=$id("tick-text");if(!tt||!tx)return;
-    const it=TICKS[tickIdx];tt.textContent=it.tag;tt.className="tick-tag "+it.cls;tx.textContent=it.text;tx.style.opacity=1;
+    const tt=$id("tick-tag"),tx=$id("tick-text"),tl=$id("tick-link");if(!tt||!tx)return;
+    const it=TICKS[tickIdx];
+    tt.textContent=it.tag;tt.className="tick-tag "+it.cls;
+    tx.style.opacity=1;
+    if(tl){tl.textContent=it.text;tl.href=it.url||"#";}
+    else tx.textContent=it.text;
   }
   show();
   tickTimer=setInterval(()=>{
