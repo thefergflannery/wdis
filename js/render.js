@@ -1,118 +1,163 @@
+/* ── helpers ─────────────────────────────── */
+const C={
+  canvas:'#131313',surface:'#1c1c1c',surface2:'#242424',border:'#2d2d2d',
+  mint:'#3cffd0',uv:'#5200ff',text1:'#ffffff',text2:'#949494',text3:'#5a5a5a',
+};
+const mono='font-family:\'Space Mono\',monospace';
+const disp='font-family:\'Anton\',Impact,sans-serif';
+const sans='font-family:\'Space Grotesk\',sans-serif';
+const label=`${mono};font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:${C.text3}`;
+const hairline=`border:1px solid ${C.border}`;
+
 function sidePartyListHTML(scored,hasAny){
-  if(!hasAny)return`<p class="text-2xs text-slate-400 dark:text-slate-600 py-1.5">Answer questions to see matches</p>`;
+  if(!hasAny)return`<p style="${mono};font-size:10px;color:${C.text3};letter-spacing:.08em;text-transform:uppercase;padding:8px 0">ANSWER TO SEE MATCHES</p>`;
   const list=S.showMinor?scored:scored.filter(p=>p.size!=="minor");
-  return list.map(p=>`<div class="flex items-center gap-2 py-1.5 border-b border-slate-100 dark:border-slate-800 last:border-0" title="${p.name}">
-<span class="w-2 h-2 rounded-full shrink-0" style="background:${p.col}"></span>
-<span class="text-2xs font-bold text-slate-700 dark:text-slate-300 w-7 shrink-0">${p.abbr}</span>
-<div class="flex-1 h-1 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-<div class="h-full rounded-full" style="width:${p.match}%;background:${p.col}"></div>
+  return list.slice(0,12).map((p,i)=>`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid ${C.border}" title="${p.name}">
+<span style="font-size:9px;${mono};color:${C.text3};width:14px;text-align:right;flex-shrink:0">${i+1}</span>
+<span style="width:7px;height:7px;border-radius:50%;flex-shrink:0;background:${p.col}"></span>
+<span style="font-size:11px;font-weight:600;color:${C.text2};width:32px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.abbr}</span>
+<div style="flex:1;height:2px;background:${C.border};border-radius:2px;overflow:hidden">
+<div style="height:100%;border-radius:2px;width:${p.match}%;background:${p.col}"></div>
 </div>
-<span class="text-2xs font-medium text-slate-500 dark:text-slate-400 w-7 text-right shrink-0 tabular-nums">${p.match}%</span>
+<span style="${mono};font-size:10px;font-weight:700;color:${C.text2};width:28px;text-align:right;flex-shrink:0">${p.match}%</span>
 </div>`).join("");
 }
 
 function resultTop5HTML(top5){
-  return top5.map((p,i)=>`<div class="rounded-2xl border p-5 mb-3 ${i===0?"bg-emerald-50 dark:bg-emerald-950/60 border-emerald-200 dark:border-emerald-800":"bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800"}">
-<div class="flex justify-between items-start mb-3">
-<div class="flex items-center gap-2 flex-wrap">
-<span class="w-2.5 h-2.5 rounded-full shrink-0 mt-0.5" style="background:${p.col}"></span>
-<span class="text-base font-semibold text-slate-900 dark:text-slate-100">${p.url?`<a href="${p.url}" target="_blank" rel="noopener" style="color:inherit;text-decoration:none;hover:underline">${p.name}</a>`:p.name}</span>
-${p.size==="minor"?`<span class="text-2xs font-semibold px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 rounded-full">minor</span>`:""}
-${i===0?`<span class="text-2xs font-bold px-2 py-0.5 bg-emerald-100 dark:bg-emerald-900 text-emerald-700 dark:text-emerald-300 rounded-full">Best match</span>`:""}
+  return top5.map((p,i)=>`<div style="border-radius:20px;padding:20px 24px;margin-bottom:12px;${i===0?`background:rgba(60,255,208,.07);border:1px solid ${C.mint}`:`background:${C.surface};${hairline}`}">
+<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">
+<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+<span style="width:10px;height:10px;border-radius:50%;background:${p.col};flex-shrink:0"></span>
+<span style="${disp};font-size:22px;color:${C.text1};letter-spacing:.02em">${p.url?`<a href="${p.url}" target="_blank" rel="noopener" style="color:inherit;text-decoration:none">${p.name}</a>`:p.name}</span>
+${p.size==="minor"?`<span style="${mono};font-size:9px;padding:2px 8px;border-radius:20px;border:1px solid ${C.border};color:${C.text3};letter-spacing:.08em;text-transform:uppercase">MINOR</span>`:""}
+${i===0?`<span style="${mono};font-size:9px;padding:2px 10px;border-radius:20px;background:${C.mint};color:#000;font-weight:700;letter-spacing:.08em">BEST MATCH</span>`:""}
 </div>
-<span class="text-2xl font-bold text-slate-900 dark:text-slate-100 tabular-nums ml-3 shrink-0">${p.match}%</span>
+<span style="${disp};font-size:40px;color:${i===0?C.mint:C.text1};letter-spacing:.02em;line-height:1;flex-shrink:0;margin-left:16px">${p.match}%</span>
 </div>
-<div class="h-1 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden mb-3">
-<div class="h-full rounded-full" style="width:${p.match}%;background:${p.col};transition:width .7s ease"></div>
+<div style="height:2px;background:${C.border};border-radius:2px;overflow:hidden;margin-bottom:12px">
+<div style="height:100%;border-radius:2px;background:${p.col};width:${p.match}%;transition:width .7s ease"></div>
 </div>
-<p class="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">${p.desc}</p>
+<p style="font-size:13px;color:${C.text2};line-height:1.6;margin:0">${p.desc}</p>
 </div>`).join("");
 }
 
 function resultAllPartiesHTML(list){
-  return list.map((p,i)=>`<div class="flex items-center gap-3 py-2 border-b border-slate-100 dark:border-slate-800 last:border-0">
-<span class="text-2xs text-slate-400 dark:text-slate-600 w-5 text-right shrink-0 tabular-nums">${i+1}</span>
-<span class="w-2 h-2 rounded-full shrink-0" style="background:${p.col}"></span>
-<span class="text-sm text-slate-700 dark:text-slate-300 flex-1">${p.url?`<a href="${p.url}" target="_blank" rel="noopener" style="color:inherit;text-decoration:none">${p.name}</a>`:p.name}${p.size==="minor"?`<span class="ml-1.5 text-2xs font-medium px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-400 rounded-full">minor</span>`:""}</span>
-<div class="w-20 h-1 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden shrink-0">
-<div class="h-full rounded-full" style="width:${p.match}%;background:${p.col}"></div>
+  return list.map((p,i)=>`<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid ${C.border}${i===list.length-1?';border-bottom:none':''}">
+<span style="${mono};font-size:10px;color:${C.text3};width:20px;text-align:right;flex-shrink:0">${i+1}</span>
+<span style="width:8px;height:8px;border-radius:50%;background:${p.col};flex-shrink:0"></span>
+<span style="font-size:14px;color:${C.text2};flex:1">
+${p.url?`<a href="${p.url}" target="_blank" rel="noopener" style="color:inherit;text-decoration:none">${p.name}</a>`:p.name}
+${p.size==="minor"?`<span style="${mono};font-size:9px;padding:1px 6px;background:${C.surface2};color:${C.text3};border-radius:10px;margin-left:6px;letter-spacing:.06em;text-transform:uppercase">MINOR</span>`:""}
+</span>
+<div style="width:80px;height:2px;background:${C.surface2};border-radius:2px;overflow:hidden;flex-shrink:0">
+<div style="height:100%;background:${p.col};width:${p.match}%;border-radius:2px"></div>
 </div>
-<span class="text-xs font-semibold text-slate-600 dark:text-slate-400 w-8 text-right shrink-0 tabular-nums">${p.match}%</span>
+<span style="${mono};font-size:11px;font-weight:700;color:${C.text2};width:32px;text-align:right;flex-shrink:0">${p.match}%</span>
 </div>`).join("");
 }
 
 function sideAxisHTML(axes){
-  if(!axes||!Object.keys(axes).length)return`<p class="text-2xs text-slate-400 dark:text-slate-600 py-1.5">No data yet</p>`;
+  if(!axes||!Object.keys(axes).length)return`<p style="${mono};font-size:10px;color:${C.text3};letter-spacing:.08em;text-transform:uppercase;padding:6px 0">NO DATA YET</p>`;
   return Object.entries(axes).map(([ax,v])=>{
     const isL=v<0;
-    const lbl=v<-1.5?"Str. left":v<-0.5?"Left":v>1.5?"Str. right":v>0.5?"Right":"Centre";
+    const lbl=v<-1.5?"STR. LEFT":v<-0.5?"LEFT":v>1.5?"STR. RIGHT":v>0.5?"RIGHT":"CENTRE";
     const pct=Math.max(0,Math.min(100,50+Math.round((v/3)*50)));
-    const fillStyle=isL?`left:${pct}%;width:${50-pct}%;background:#93c5fd;opacity:.7`:`left:50%;width:${pct-50}%;background:#fcd34d;opacity:.7`;
-    return`<div class="flex items-center gap-2 mb-2 last:mb-0">
-<span class="text-2xs text-slate-500 dark:text-slate-400 w-16 shrink-0 truncate">${AXLABELS[ax]||ax}</span>
-<div class="flex-1 h-1 bg-slate-100 dark:bg-slate-800 rounded-full relative overflow-visible">
-<div class="absolute top-0 h-full rounded-full" style="${fillStyle}"></div>
-<div class="absolute left-1/2 top-[-2px] bottom-[-2px] w-px bg-slate-300 dark:bg-slate-600" style="transform:translateX(-50%)"></div>
+    const fillStyle=isL?`left:${pct}%;width:${50-pct}%;background:${C.mint};opacity:.7`:`left:50%;width:${pct-50}%;background:${C.uv};opacity:.7`;
+    return`<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+<span style="font-size:10px;color:${C.text3};width:62px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${AXLABELS[ax]||ax}</span>
+<div style="flex:1;height:2px;background:${C.border};border-radius:2px;position:relative;overflow:visible">
+<div style="position:absolute;top:0;height:100%;border-radius:2px;${fillStyle}"></div>
+<div style="position:absolute;left:50%;top:-3px;bottom:-3px;width:1px;background:#5a5a5a;transform:translateX(-50%)"></div>
 </div>
-<span class="text-2xs text-slate-400 dark:text-slate-600 w-14 text-right shrink-0">${lbl}</span>
+<span style="${mono};font-size:9px;color:${C.text3};width:48px;text-align:right;flex-shrink:0;letter-spacing:.06em">${lbl}</span>
 </div>`;
   }).join("");
 }
 
 function legendHTML(){
-  return`<div class="text-2xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-600 mb-3">Party key - all 20 parties</div>
-<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin-bottom:28px">${PARTIES.map(p=>`<div class="flex items-start gap-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3">
-<div class="text-xs font-bold shrink-0 w-9 pt-px" style="color:${p.col}">${p.abbr}</div>
+  return`<div style="${label};margin-bottom:16px">PARTY KEY — ALL 20 PARTIES</div>
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin-bottom:40px">${PARTIES.map(p=>`<div style="display:flex;align-items:flex-start;gap:10px;background:${C.surface};border:1px solid ${C.border};border-radius:16px;padding:12px 14px">
+<div style="font-size:12px;font-weight:700;flex-shrink:0;width:38px;padding-top:1px;color:${p.col}">${p.abbr}</div>
 <div>
-<div class="text-xs font-semibold text-slate-800 dark:text-slate-200 leading-snug">${p.url?`<a href="${p.url}" target="_blank" rel="noopener" style="color:inherit;text-decoration:none">${p.name}</a>`:p.name}${p.size==="minor"?`<span class="ml-1 text-2xs font-medium px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-400 rounded-full">minor</span>`:""}</div>
-<div class="text-2xs text-slate-500 dark:text-slate-400 mt-0.5 leading-snug">${p.desc}</div>
+<div style="font-size:12px;font-weight:600;color:${C.text1};line-height:1.3">${p.url?`<a href="${p.url}" target="_blank" rel="noopener" style="color:inherit;text-decoration:none">${p.name}</a>`:p.name}${p.size==="minor"?`<span style="${mono};font-size:9px;padding:1px 6px;background:${C.surface2};color:${C.text3};border-radius:10px;margin-left:5px;letter-spacing:.06em;text-transform:uppercase">MINOR</span>`:""}</div>
+<div style="font-size:11px;color:${C.text3};margin-top:3px;line-height:1.45">${p.desc}</div>
 </div></div>`).join("")}</div>`;
 }
 
 function headerHTML(){
-  return`<div class="sticky top-0 z-50 bg-slate-50 dark:bg-slate-950">
-<div class="bg-slate-100 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-5 py-2 flex gap-3 items-center overflow-hidden">
-<span class="tick-tag tick-live shrink-0" id="tick-tag">LIVE</span>
-<span class="text-xs text-slate-500 dark:text-slate-400 truncate flex-1 tick-text" id="tick-text">Loading...</span>
-<span class="text-2xs text-slate-400 dark:text-slate-600 shrink-0 tabular-nums">20 Apr 2026</span>
+  return`<div style="position:sticky;top:0;z-index:50;background:${C.canvas}">
+<div style="background:${C.surface};border-bottom:1px solid ${C.border};padding:7px 32px;display:flex;gap:12px;align-items:center;overflow:hidden">
+<span class="tick-tag tick-live" id="tick-tag">LIVE</span>
+<span class="tick-text" id="tick-text" style="font-size:12px;color:${C.text2};flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Loading...</span>
+<span style="${mono};font-size:10px;color:${C.text3};flex-shrink:0;letter-spacing:.08em">20 APR 2026</span>
 </div>
-<nav class="flex items-center justify-between px-5 py-3 border-b border-slate-200 dark:border-slate-800">
-<button onclick="go('intro')" class="text-sm font-bold tracking-tight text-slate-900 dark:text-slate-100 hover:opacity-60 transition-opacity cursor-pointer bg-transparent border-0 p-0">Where Do I Stand<span style="color:#6366f1">?</span></button>
-<div class="flex gap-2">
-<button id="theme-btn" onclick="themeToggle()" class="text-xs font-medium text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3 py-1.5 rounded-full hover:border-slate-400 dark:hover:border-slate-500 transition-colors cursor-pointer">${S.dark?"☀ Light":"☾ Dark"}</button>
+<nav style="display:flex;align-items:center;justify-content:space-between;padding:14px 32px;border-bottom:1px solid ${C.border}">
+<button onclick="go('intro')" style="${disp};font-size:24px;color:${C.text1};background:none;border:none;cursor:pointer;letter-spacing:.06em;padding:0;line-height:1">TILT<span style="color:${C.mint}">.</span></button>
+<div style="display:flex;gap:8px;align-items:center">
+<button id="theme-btn" onclick="themeToggle()" style="${mono};font-size:10px;color:${C.text2};background:transparent;border:1px solid ${C.border};padding:6px 14px;border-radius:24px;cursor:pointer;letter-spacing:.08em;text-transform:uppercase;transition:all .15s">${S.dark?"☀ LIGHT":"☾ DARK"}</button>
 </div>
 </nav>
 </div>`;
 }
 
+/* ── INTRO ───────────────────────────────── */
 function renderIntro(){
-  $id("root").innerHTML=headerHTML()+`<div class="px-5 pt-10 pb-16 max-w-2xl">
-<p class="text-2xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-600 mb-5">Republic of Ireland · Political Compass · April 2026</p>
-<h1 class="text-5xl font-bold tracking-tight text-slate-900 dark:text-slate-100 leading-none mb-5" style="letter-spacing:-.03em">Where do you<br>stand?</h1>
-<p class="text-lg text-slate-600 dark:text-slate-400 leading-relaxed mb-3">All 20 registered Irish parties mapped against real policy positions.</p>
-<div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 mb-8 text-sm text-slate-500 dark:text-slate-400 leading-relaxed">This tool is not politically affiliated. Built to help you cut through the noise and map your own views against the policies parties actually stand for.</div>
-<div class="flex gap-3 mb-10" style="flex-wrap:wrap">
-<button onclick="startQuiz('quick')" class="flex-1 bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 rounded-2xl p-5 text-left hover:border-slate-400 dark:hover:border-slate-500 transition-all cursor-pointer" style="min-width:160px">
-<div class="text-xl font-bold text-slate-900 dark:text-slate-100 mb-1">Quick</div>
-<div class="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-1.5">10 questions · ~3 min</div>
-<div class="text-xs text-slate-400 dark:text-slate-600">One question per topic - fast overview</div>
-</button>
-<button onclick="startQuiz('full')" class="flex-1 rounded-2xl p-5 text-left transition-all cursor-pointer" style="min-width:160px;background:#4f46e5;border:2px solid #4f46e5">
-<div class="text-xl font-bold text-white mb-1">Full</div>
-<div class="text-sm font-semibold mb-1.5" style="color:#c7d2fe">56 questions · ~15 min</div>
-<div class="text-xs" style="color:#a5b4fc">All topics in depth - most accurate result</div>
-</button>
-</div>
-<hr class="border-slate-200 dark:border-slate-800 mb-8">
-${legendHTML()}
-<div class="mb-2">
-<div class="text-2xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-600 mb-3">Topics covered</div>
-<div class="flex flex-wrap gap-1.5">${CATS.map(c=>`<span class="text-2xs font-medium px-3 py-1 rounded-full border ${c==="Fuel & Cost of Living"?"bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800":"bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700"}">${c}</span>`).join("")}</div>
-</div>
+  $id("root").innerHTML=headerHTML()+`
+<div style="max-width:1440px;margin:0 auto;padding:0 32px">
+
+  <!-- HERO SPLIT -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center;padding:80px 0 64px;border-bottom:1px solid ${C.border}">
+    <div>
+      <p style="${mono};font-size:10px;color:${C.mint};letter-spacing:.16em;text-transform:uppercase;margin-bottom:20px">Republic of Ireland · Political Compass · April 2026</p>
+      <h1 style="${disp};font-size:clamp(72px,9vw,120px);line-height:.88;letter-spacing:.02em;color:${C.text1};margin-bottom:16px">TILT<span style="color:${C.mint}">.</span></h1>
+      <p style="${mono};font-size:14px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:${C.text2};margin-bottom:10px">WHERE DO I CURRENTLY STAND?</p>
+      <p style="font-size:16px;color:${C.text2};line-height:1.6;margin-bottom:12px">A guide to your political leaning in Ireland.</p>
+      <div style="background:${C.surface};border:1px solid ${C.border};border-radius:12px;padding:12px 16px;margin-bottom:32px;font-size:13px;color:${C.text3};line-height:1.6">
+        Not politically affiliated. Built to help you cut through the noise and map your own views against the policies parties actually stand for.
+      </div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap">
+        <button onclick="startQuiz('quick')" style="flex:1;min-width:150px;background:${C.surface};border:1px solid ${C.border};border-radius:24px;padding:16px 24px;text-align:left;cursor:pointer;transition:all .15s" onmouseover="this.style.borderColor='${C.mint}'" onmouseout="this.style.borderColor='${C.border}'">
+          <div style="${disp};font-size:24px;color:${C.text1};letter-spacing:.04em;margin-bottom:4px">QUICK</div>
+          <div style="${mono};font-size:11px;color:${C.text2};letter-spacing:.08em;margin-bottom:6px">10 QUESTIONS · ~3 MIN</div>
+          <div style="font-size:12px;color:${C.text3}">One question per topic</div>
+        </button>
+        <button onclick="startQuiz('full')" style="flex:1;min-width:150px;background:${C.mint};border:1px solid ${C.mint};border-radius:24px;padding:16px 24px;text-align:left;cursor:pointer;transition:all .15s" onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'">
+          <div style="${disp};font-size:24px;color:#000;letter-spacing:.04em;margin-bottom:4px">FULL</div>
+          <div style="${mono};font-size:11px;color:rgba(0,0,0,.7);letter-spacing:.08em;margin-bottom:6px">56 QUESTIONS · ~15 MIN</div>
+          <div style="font-size:12px;color:rgba(0,0,0,.6)">All topics — most accurate</div>
+        </button>
+      </div>
+    </div>
+    <div>
+      <div style="${label};margin-bottom:12px">LIVE PARTY POSITIONS — COMPASS PREVIEW</div>
+      <div style="background:${C.surface};border:1px solid ${C.border};border-radius:20px;padding:16px">
+        <canvas id="intro-compass" style="width:100%;display:block;border-radius:12px"></canvas>
+        <div style="${mono};font-size:10px;color:${C.text3};text-align:center;margin-top:10px;letter-spacing:.08em">START ANSWERING TO SEE YOUR POSITION</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LEGEND -->
+  <div style="padding:56px 0 0">
+    ${legendHTML()}
+  </div>
+
+  <!-- TOPIC PILLS -->
+  <div style="padding-bottom:64px">
+    <div style="${label};margin-bottom:16px">TOPICS COVERED — ${CATS.length} CATEGORIES</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px">
+      ${CATS.map(c=>`<span style="${mono};font-size:10px;padding:5px 12px;border-radius:20px;border:1px solid ${c==="Fuel & Cost of Living"?"#f0a500":C.border};color:${c==="Fuel & Cost of Living"?"#f0a500":C.text3};letter-spacing:.06em;text-transform:uppercase">${c}</span>`).join("")}
+    </div>
+  </div>
 </div>`;
   applyTheme();startTicker();
+  requestAnimationFrame(()=>{
+    const cv=$id("intro-compass");
+    if(cv){const w=cv.parentElement.offsetWidth-32;cv.width=w;cv.height=Math.round(w*.7);drawCompass("intro-compass",{},w,Math.round(w*.7));}
+  });
 }
 
+/* ── QUIZ ────────────────────────────────── */
 function renderQuiz(){
   const qs=activeQS();
   const cat=CATS[S.cat];
@@ -122,84 +167,89 @@ function renderQuiz(){
   const done=Object.keys(S.answers).length;
   const catDone=catQs.every(q=>S.answers[q.id]!==undefined);
   const hasAny=done>0;
-  const modeLbl=S.mode==="quick"?`<span class="text-2xs font-bold px-2.5 py-0.5 rounded-full ml-2" style="background:#fffbeb;color:#b45309;border:1px solid #fde68a">Quick mode</span>`:``;
+  const modeLbl=S.mode==="quick"?`<span style="${mono};font-size:9px;padding:3px 10px;border-radius:20px;background:rgba(240,165,0,.15);color:#f0a500;border:1px solid rgba(240,165,0,.3);letter-spacing:.08em;margin-left:10px">QUICK MODE</span>`:``;
 
   const catBtns=CATS.map((c,i)=>{
-    const cqs=qs.filter(q=>q.cat===c);
-    if(!cqs.length)return"";
+    const cqs=qs.filter(q=>q.cat===c);if(!cqs.length)return"";
     const cd=cqs.every(q=>S.answers[q.id]!==undefined);
-    let cls="px-3 py-1.5 rounded-full text-2xs font-semibold border transition-all cursor-pointer whitespace-nowrap ";
-    if(i===S.cat)cls+="bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 border-slate-900 dark:border-slate-100";
-    else if(cd)cls+="bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800";
-    else cls+="bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-500";
-    return`<button class="${cls}" onclick="setCat(${i})">${cd?"✓ ":""}${c}</button>`;
+    const isActive=i===S.cat;
+    const bg=isActive?C.mint:cd?'rgba(60,255,208,.08)':'transparent';
+    const col=isActive?'#000':cd?C.mint:C.text3;
+    const bc=isActive?C.mint:cd?'rgba(60,255,208,.3)':C.border;
+    return`<button style="${mono};font-size:10px;padding:6px 14px;border-radius:20px;border:1px solid ${bc};background:${bg};color:${col};cursor:pointer;white-space:nowrap;letter-spacing:.06em;transition:all .15s;font-weight:700" onclick="setCat(${i})">${cd&&!isActive?"✓ ":""}${c.toUpperCase()}</button>`;
   }).join("");
 
   const qCards=catQs.map(q=>{
     const v=S.answers[q.id];const ans=v!==undefined;
     const tc=n=>{if(v!==n)return"tap-btn";if(n<0)return"tap-btn neg";if(n>0)return"tap-btn pos";return"tap-btn neu";};
-    return`<div class="bg-white dark:bg-slate-900 border rounded-2xl p-5 mb-4 transition-colors ${ans?"border-slate-300 dark:border-slate-600":"border-slate-200 dark:border-slate-800"}" id="card-${q.id}">
-<p class="text-base font-semibold text-slate-900 dark:text-slate-100 mb-3 leading-snug">${q.text}</p>
-<div class="rounded-xl px-4 py-3 mb-4 text-sm leading-relaxed bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400" style="border-left:3px solid #cbd5e1">${q.explain}</div>
-<div class="text-center text-xs font-medium mb-2 min-h-5 ${ans?"text-slate-700 dark:text-slate-300":"text-slate-400 dark:text-slate-600"}" id="ans-${q.id}">${ans?VLABELS[String(v)]:"Select your position below"}</div>
-<div class="flex justify-between text-2xs text-slate-400 dark:text-slate-600 mb-1.5 px-0.5"><span>Strongly disagree</span><span>Strongly agree</span></div>
-<div class="flex gap-1.5">${[-2,-1,0,1,2].map(n=>`<button id="btn-${q.id}-${n}" class="${tc(n)}" onclick="setAns(${q.id},${n})">${BLABELS[String(n)]}</button>`).join("")}</div>
+    return`<div style="background:${C.surface};border:1px solid ${ans?'rgba(60,255,208,.2)':C.border};border-radius:20px;padding:24px;margin-bottom:16px;transition:border-color .2s" id="card-${q.id}">
+<p style="font-size:16px;font-weight:600;color:${C.text1};line-height:1.5;margin-bottom:14px">${q.text}</p>
+<div class="q-explain-block" style="border-radius:0 10px 10px 0;padding:12px 16px;margin-bottom:16px;font-size:13px;color:${C.text2};line-height:1.65">${q.explain}</div>
+<div style="${mono};text-align:center;font-size:11px;font-weight:700;min-height:20px;margin-bottom:10px;color:${ans?C.mint:C.text3};letter-spacing:.06em" id="ans-${q.id}">${ans?VLABELS[String(v)].toUpperCase():"SELECT YOUR POSITION"}</div>
+<div style="display:flex;justify-content:space-between;${mono};font-size:9px;color:${C.text3};margin-bottom:8px;letter-spacing:.06em"><span>STRONGLY DISAGREE</span><span>STRONGLY AGREE</span></div>
+<div style="display:flex;gap:6px">${[-2,-1,0,1,2].map(n=>`<button id="btn-${q.id}-${n}" class="${tc(n)}" onclick="setAns(${q.id},${n})">${BLABELS[String(n)]}</button>`).join("")}</div>
 </div>`;
   }).join("");
 
-  const notice=cat==="Fuel & Cost of Living"?`<div class="rounded-xl px-4 py-3 mb-4 text-sm leading-relaxed" style="background:#fffbeb;color:#92400e;border:1px solid #fde68a"><strong class="font-semibold">Context, April 2026:</strong> Farmer and haulier blockades began April 7 after diesel +28%. Over 600 stations ran dry. Govt announced €755m tax cuts April 13-14. SF tabled a no-confidence motion; coalition survived 92-78.</div>`:"";
+  const notice=cat==="Fuel & Cost of Living"?`<div style="background:rgba(240,165,0,.08);border:1px solid rgba(240,165,0,.3);border-radius:12px;padding:14px 18px;margin-bottom:20px;font-size:13px;color:#f0a500;line-height:1.6"><strong>Context, April 2026:</strong> Farmer and haulier blockades began April 7 after diesel +28%. Over 600 stations ran dry. Govt announced €755m tax cuts April 13-14. SF tabled a no-confidence motion; coalition survived 92-78.</div>`:"";
 
   const liveBox=S.hideCompass
-    ?`<p class="text-2xs text-slate-400 dark:text-slate-600 text-center py-4 leading-relaxed">Results hidden<br><span style="opacity:.7">Revealed at the end</span></p>`
-    :`<div class="text-2xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-600 mb-2">Compass</div>
-<canvas id="compass-canvas" class="w-full rounded-xl"></canvas>
-<div class="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800">
-<div class="flex items-center justify-between mb-2">
-<span class="text-2xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-600">Party matches</span>
-<button id="minor-toggle-btn" onclick="toggleMinor()" class="text-2xs font-semibold px-2 py-0.5 rounded-full border transition-all cursor-pointer ${S.showMinor?"border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-400":"border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-600"}">${S.showMinor?"Hide minor":"Show minor"}</button>
+    ?`<p style="${mono};font-size:10px;color:${C.text3};text-align:center;padding:24px 0;letter-spacing:.08em;text-transform:uppercase">RESULTS HIDDEN<br><span style="opacity:.5;font-size:9px">REVEALED AT THE END</span></p>`
+    :`<canvas id="compass-canvas" style="width:100%;display:block;border-radius:12px;margin-bottom:12px"></canvas>
+<div style="background:${C.surface2};border-radius:12px;padding:12px">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+<span style="${label}">PARTY MATCHES</span>
+<button id="minor-toggle-btn" onclick="toggleMinor()" style="${mono};font-size:9px;font-weight:700;padding:3px 10px;border-radius:20px;border:1px solid ${C.border};background:transparent;color:${C.text3};cursor:pointer;letter-spacing:.06em;text-transform:uppercase">${S.showMinor?"HIDE MINOR":"SHOW MINOR"}</button>
 </div>
 <div id="party-list-box">${sidePartyListHTML(scored,hasAny)}</div>
 </div>`;
 
-  $id("root").innerHTML=headerHTML()+`<div class="h-0.5 bg-slate-200 dark:bg-slate-800"><div id="pbar" class="h-full" style="width:${Math.round((done/qs.length)*100)}%;background:#6366f1;transition:width .3s ease"></div></div>
-<div class="px-5 pt-5 pb-16">
-<div class="flex gap-2 flex-wrap mb-5">${catBtns}</div>
-<div class="flex gap-6 items-start">
-<div class="w-60 shrink-0 sticky sidebar-scroll" style="top:84px;max-height:calc(100vh - 104px);overflow-y:auto;display:flex;flex-direction:column;gap:10px">
-<div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4">
-<div class="flex items-center justify-between mb-3">
-<span class="text-2xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-600">Live results</span>
-<button id="compass-toggle-btn" onclick="toggleCompass()" class="text-2xs font-semibold px-2.5 py-1 rounded-full border transition-all cursor-pointer ${S.hideCompass?"border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-600":"border-indigo-200 dark:border-indigo-800 text-indigo-600 dark:text-indigo-400"}" style="${S.hideCompass?"":"background:#eef2ff"}">${S.hideCompass?"Show":"Hide"}</button>
-</div>
-<div id="live-results-box">${liveBox}</div>
-</div>
-<div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4">
-<div class="text-2xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-600 mb-3">By issue</div>
-<div id="axis-box">${sideAxisHTML(axes)}</div>
-</div>
-</div>
-<div class="flex-1 min-w-0">
-${notice}
-<div class="flex items-baseline gap-2 mb-1 flex-wrap">
-<h2 class="text-xl font-bold text-slate-900 dark:text-slate-100">${cat}</h2>${modeLbl}
-</div>
-<p class="text-sm text-slate-400 dark:text-slate-600 mb-5">${done}/${qs.length} answered</p>
-${qCards}
-<div class="flex justify-between items-center mt-6 gap-3" style="flex-wrap:wrap">
-<button onclick="prevCat()" ${S.cat===0?"disabled":""} class="px-5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-medium text-slate-600 dark:text-slate-400 bg-white dark:bg-slate-900 hover:border-slate-400 transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed">Back</button>
-<div class="flex gap-3 items-center">
-${done>=Math.floor(qs.length/2)?`<button onclick="go('results')" class="text-xs text-slate-400 dark:text-slate-600 underline underline-offset-2 cursor-pointer bg-transparent border-0">Skip to results</button>`:""}
-<button id="next-btn" onclick="nextCat()" ${!catDone?"disabled":""} class="px-6 py-2.5 rounded-xl text-sm font-semibold text-white transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed border-0" style="background:#4f46e5">${S.cat===CATS.length-1?"See results →":"Next: "+CATS[S.cat+1]+" →"}</button>
-</div>
-</div>
-${!catDone?`<p class="text-2xs text-slate-400 dark:text-slate-600 text-right mt-2">Answer all questions to continue</p>`:""}
-</div>
+  $id("root").innerHTML=headerHTML()+
+`<div style="height:2px;background:${C.border}"><div id="pbar" style="height:100%;background:${C.mint};width:${Math.round((done/qs.length)*100)}%"></div></div>
+<div style="max-width:1440px;margin:0 auto;padding:0 32px">
+<div style="display:flex;gap:8px;flex-wrap:wrap;padding:20px 0 16px;border-bottom:1px solid ${C.border};margin-bottom:24px">${catBtns}</div>
+<div style="display:flex;gap:32px;align-items:flex-start;padding-bottom:64px">
+
+  <!-- SIDEBAR -->
+  <div style="width:300px;flex-shrink:0;position:sticky;top:84px;max-height:calc(100vh - 104px);overflow-y:auto;display:flex;flex-direction:column;gap:12px" class="sidebar-scroll">
+    <div style="background:${C.surface};border:1px solid ${C.border};border-radius:20px;padding:16px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <span style="${label}">LIVE RESULTS</span>
+        <button id="compass-toggle-btn" onclick="toggleCompass()" style="${mono};font-size:9px;font-weight:700;padding:3px 10px;border-radius:20px;border:1px solid ${S.hideCompass?C.border:C.mint};background:${S.hideCompass?'transparent':'rgba(60,255,208,.1)'};color:${S.hideCompass?C.text3:C.mint};cursor:pointer;letter-spacing:.06em;text-transform:uppercase">${S.hideCompass?"SHOW":"HIDE"}</button>
+      </div>
+      <div id="live-results-box">${liveBox}</div>
+    </div>
+    <div style="background:${C.surface};border:1px solid ${C.border};border-radius:20px;padding:16px">
+      <div style="${label};margin-bottom:12px">BY ISSUE</div>
+      <div id="axis-box">${sideAxisHTML(axes)}</div>
+    </div>
+  </div>
+
+  <!-- QUESTIONS -->
+  <div style="flex:1;min-width:0">
+    ${notice}
+    <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:6px;flex-wrap:wrap">
+      <h2 style="${disp};font-size:32px;color:${C.text1};letter-spacing:.04em">${cat.toUpperCase()}</h2>${modeLbl}
+    </div>
+    <p style="${mono};font-size:10px;color:${C.text3};letter-spacing:.08em;margin-bottom:24px">${done}/${qs.length} ANSWERED</p>
+    ${qCards}
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:24px;gap:12px;flex-wrap:wrap;padding-bottom:32px">
+      <button onclick="prevCat()" ${S.cat===0?"disabled":""} style="${mono};font-size:11px;font-weight:700;padding:12px 24px;border-radius:24px;border:1px solid ${C.border};background:transparent;color:${C.text2};cursor:pointer;letter-spacing:.06em;transition:all .15s;disabled:opacity:.3">← BACK</button>
+      <div style="display:flex;gap:12px;align-items:center">
+        ${done>=Math.floor(qs.length/2)?`<button onclick="go('results')" style="${mono};font-size:10px;color:${C.text3};background:none;border:none;cursor:pointer;letter-spacing:.06em;text-decoration:underline;text-underline-offset:3px">SKIP TO RESULTS</button>`:""}
+        <button id="next-btn" onclick="nextCat()" ${!catDone?"disabled":""} style="${mono};font-size:11px;font-weight:700;padding:12px 28px;border-radius:24px;border:none;background:${C.mint};color:#000;cursor:pointer;letter-spacing:.06em;transition:all .15s;${!catDone?"opacity:.3;cursor:not-allowed":""}">${S.cat===CATS.length-1?"SEE RESULTS →":"NEXT: "+CATS[S.cat+1].toUpperCase()+" →"}</button>
+      </div>
+    </div>
+    ${!catDone?`<p style="${mono};font-size:10px;color:${C.text3};text-align:right;letter-spacing:.06em;margin-top:8px">ANSWER ALL QUESTIONS TO CONTINUE</p>`:""}
+  </div>
+
 </div>
 </div>`;
   applyTheme();startTicker();
-  if(!S.hideCompass)requestAnimationFrame(()=>drawCompass("compass-canvas",axes,240,240));
+  if(!S.hideCompass)requestAnimationFrame(()=>drawCompass("compass-canvas",axes,300,240));
 }
 
+/* ── RESULTS ─────────────────────────────── */
 function renderResults(){
   const axes=computeAxes(S.answers);
   const pos=computePos(axes);
@@ -209,57 +259,72 @@ function renderResults(){
 
   const axRows=Object.entries(axes).map(([ax,v])=>{
     const isL=v<0;
-    const lbl=v<-1.5?"Strong left":v<-0.5?"Left":v>1.5?"Strong right":v>0.5?"Right":"Centre";
+    const lbl=v<-1.5?"STR. LEFT":v<-0.5?"LEFT":v>1.5?"STR. RIGHT":v>0.5?"RIGHT":"CENTRE";
     const pct=Math.max(0,Math.min(100,50+Math.round((v/3)*50)));
-    const fillStyle=isL?`left:${pct}%;width:${50-pct}%;background:#93c5fd;opacity:.8`:`left:50%;width:${pct-50}%;background:#fcd34d;opacity:.8`;
-    return`<div class="flex items-center gap-3 mb-3 last:mb-0">
-<span class="text-xs text-slate-500 dark:text-slate-400 shrink-0" style="width:96px">${AXLABELS[ax]||ax}</span>
-<div class="flex-1 h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full relative overflow-visible">
-<div class="absolute top-0 h-full rounded-full" style="${fillStyle}"></div>
-<div class="absolute top-[-3px] bottom-[-3px] w-px bg-slate-300 dark:bg-slate-600" style="left:50%;transform:translateX(-50%)"></div>
+    const fillStyle=isL?`left:${pct}%;width:${50-pct}%;background:${C.mint};opacity:.75`:`left:50%;width:${pct-50}%;background:${C.uv};opacity:.75`;
+    return`<div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+<span style="font-size:12px;color:${C.text2};width:100px;flex-shrink:0">${AXLABELS[ax]||ax}</span>
+<div style="flex:1;height:3px;background:${C.border};border-radius:3px;position:relative;overflow:visible">
+<div style="position:absolute;top:0;height:100%;border-radius:3px;${fillStyle}"></div>
+<div style="position:absolute;left:50%;top:-4px;bottom:-4px;width:1px;background:#5a5a5a;transform:translateX(-50%)"></div>
 </div>
-<span class="text-xs text-slate-400 dark:text-slate-600 text-right shrink-0" style="width:76px">${lbl}</span>
+<span style="${mono};font-size:9px;color:${C.text3};width:60px;text-align:right;flex-shrink:0;letter-spacing:.06em">${lbl}</span>
 </div>`;
   }).join("");
 
   const leanDef=LEAN_DEFS[lean]||"";
-  $id("root").innerHTML=headerHTML()+`<div class="px-5 pt-8 pb-16">
-<p class="text-2xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-600 mb-5">Your results · April 2026</p>
-<div class="rounded-2xl p-6 mb-6" style="background:#eef2ff;border:1px solid #c7d2fe">
-<div class="text-2xs font-bold uppercase tracking-widest mb-2" style="color:#818cf8">Your political leaning</div>
-<div class="text-3xl font-bold mb-1" style="color:#3730a3;letter-spacing:-.02em">${lean}</div>
-<div class="text-sm font-medium mb-3" style="color:#4338ca">${sub}</div>
-${leanDef?`<p class="text-sm leading-relaxed" style="color:#4338ca;opacity:.9">${leanDef}</p>`:""}
-</div>
-<div class="flex gap-5 items-start mb-8" style="flex-wrap:wrap">
-<div style="flex:2;min-width:280px">
-<div class="text-2xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-600 mb-3">Compass position</div>
-<div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-3">
-<canvas id="compass-canvas" class="w-full rounded-xl"></canvas>
-</div>
-</div>
-<div style="flex:1;min-width:220px">
-<div class="text-2xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-600 mb-3">Position by issue</div>
-<div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4">${axRows}</div>
-</div>
-</div>
-<div class="text-2xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-600 mb-4">Your closest matches</div>
-<div id="results-top5" class="mb-8">${resultTop5HTML(list.slice(0,5))}</div>
-<div class="flex justify-between items-center mb-3">
-<div class="text-2xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-600">All parties ranked</div>
-<button id="minor-toggle-btn" onclick="toggleMinor()" class="text-xs font-semibold px-3 py-1.5 rounded-full border bg-white dark:bg-slate-900 transition-all cursor-pointer ${S.showMinor?"border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-400":"border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-600"}">${S.showMinor?"Hide minor parties":"Show minor parties"}</button>
-</div>
-<div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl px-4 py-1 mb-8">
-<div id="results-all-parties">${resultAllPartiesHTML(list)}</div>
-</div>
-<hr class="border-slate-200 dark:border-slate-800 mb-8">
-${legendHTML()}
-<div class="flex gap-3 flex-wrap mb-5">
-<button onclick="go('intro')" class="px-5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-medium text-slate-600 dark:text-slate-400 bg-white dark:bg-slate-900 hover:border-slate-400 transition-colors cursor-pointer">Start again</button>
-<button onclick="go('quiz')" class="px-5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-medium text-slate-600 dark:text-slate-400 bg-white dark:bg-slate-900 hover:border-slate-400 transition-colors cursor-pointer">Edit answers</button>
-</div>
-<p class="text-xs text-slate-400 dark:text-slate-600 leading-relaxed">Based on GE2024 manifestos, Oireachtas voting records, and published policy positions as of April 2026. For informational purposes only.</p>
+  $id("root").innerHTML=headerHTML()+`
+<div style="max-width:1440px;margin:0 auto;padding:0 32px 64px">
+
+  <!-- LEAN HERO -->
+  <div style="margin:40px 0;padding:40px 48px;border-radius:20px;background:${C.surface};border:1px solid ${C.border}">
+    <div style="${label};margin-bottom:16px">YOUR POLITICAL LEANING</div>
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:32px;flex-wrap:wrap">
+      <div>
+        <h2 style="${disp};font-size:clamp(48px,7vw,96px);line-height:.9;color:${C.mint};letter-spacing:.03em;margin-bottom:8px">${lean.toUpperCase()}</h2>
+        <p style="${mono};font-size:13px;font-weight:700;color:${C.text2};letter-spacing:.10em;text-transform:uppercase;margin-bottom:${leanDef?'16px':'0'}">${sub}</p>
+        ${leanDef?`<p style="font-size:14px;color:${C.text2};line-height:1.7;max-width:560px">${leanDef}</p>`:""}
+      </div>
+      <div style="${mono};font-size:10px;color:${C.text3};letter-spacing:.08em;text-align:right;padding-top:8px">APRIL 2026 · IRELAND</div>
+    </div>
+  </div>
+
+  <!-- COMPASS + AXIS -->
+  <div style="display:grid;grid-template-columns:3fr 2fr;gap:24px;margin-bottom:40px">
+    <div>
+      <div style="${label};margin-bottom:14px">YOUR COMPASS POSITION</div>
+      <div style="background:${C.surface};border:1px solid ${C.border};border-radius:20px;padding:16px">
+        <canvas id="compass-canvas" style="width:100%;display:block;border-radius:12px"></canvas>
+      </div>
+    </div>
+    <div>
+      <div style="${label};margin-bottom:14px">POSITION BY ISSUE</div>
+      <div style="background:${C.surface};border:1px solid ${C.border};border-radius:20px;padding:20px">${axRows}</div>
+    </div>
+  </div>
+
+  <!-- TOP MATCHES -->
+  <div style="${label};margin-bottom:20px">YOUR CLOSEST MATCHES</div>
+  <div id="results-top5" style="margin-bottom:40px">${resultTop5HTML(list.slice(0,5))}</div>
+
+  <!-- ALL PARTIES -->
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+    <div style="${label}">ALL PARTIES RANKED</div>
+    <button id="minor-toggle-btn" onclick="toggleMinor()" style="${mono};font-size:10px;font-weight:700;padding:6px 16px;border-radius:24px;border:1px solid ${S.showMinor?C.mint:C.border};background:${S.showMinor?'rgba(60,255,208,.08)':'transparent'};color:${S.showMinor?C.mint:C.text3};cursor:pointer;letter-spacing:.06em;text-transform:uppercase;transition:all .15s">${S.showMinor?"HIDE MINOR PARTIES":"SHOW MINOR PARTIES"}</button>
+  </div>
+  <div style="background:${C.surface};border:1px solid ${C.border};border-radius:20px;padding:8px 20px;margin-bottom:40px">
+    <div id="results-all-parties">${resultAllPartiesHTML(list)}</div>
+  </div>
+
+  <hr style="border:none;border-top:1px solid ${C.border};margin:40px 0">
+  ${legendHTML()}
+
+  <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px">
+    <button onclick="go('intro')" style="${mono};font-size:11px;font-weight:700;padding:12px 24px;border-radius:24px;border:1px solid ${C.border};background:transparent;color:${C.text2};cursor:pointer;letter-spacing:.06em;transition:all .15s">← START AGAIN</button>
+    <button onclick="go('quiz')" style="${mono};font-size:11px;font-weight:700;padding:12px 24px;border-radius:24px;border:1px solid ${C.border};background:transparent;color:${C.text2};cursor:pointer;letter-spacing:.06em;transition:all .15s">EDIT ANSWERS</button>
+  </div>
+  <p style="font-size:12px;color:${C.text3};line-height:1.7">Based on GE2024 manifestos, Oireachtas voting records, and published policy positions as of April 2026. For informational purposes only.</p>
 </div>`;
   applyTheme();startTicker();
-  requestAnimationFrame(()=>{const cv=$id("compass-canvas");if(cv){const w=cv.parentElement.offsetWidth||500;drawCompass("compass-canvas",axes,w,Math.round(w*0.65));}});
+  requestAnimationFrame(()=>{const cv=$id("compass-canvas");if(cv){const w=cv.parentElement.offsetWidth-32;drawCompass("compass-canvas",axes,w,Math.round(w*.6));}});
 }

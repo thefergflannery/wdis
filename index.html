@@ -3,64 +3,86 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Where Do I Stand? - Irish Political Compass</title>
-<meta name="description" content="56 questions. 20 parties. Find out where you stand on the Irish political spectrum - including the April 2026 fuel crisis.">
+<title>TILT — Where Do I Currently Stand?</title>
+<meta name="description" content="56 questions. 20 parties. A guide to your political leaning in Ireland.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
 tailwind.config={
   darkMode:'class',
   theme:{
     extend:{
-      fontFamily:{sans:['-apple-system','BlinkMacSystemFont','"Segoe UI"','Inter','sans-serif']},
+      colors:{
+        canvas:'#131313',
+        surface:'#1c1c1c',
+        surface2:'#242424',
+        border:'#2d2d2d',
+        mint:'#3cffd0',
+        'mint-dim':'#309875',
+        uv:'#5200ff',
+        'text1':'#ffffff',
+        'text2':'#949494',
+        'text3':'#5a5a5a',
+        'link-hover':'#3860be',
+      },
+      fontFamily:{
+        display:['Anton','Impact','Arial Narrow','sans-serif'],
+        sans:['Space Grotesk','-apple-system','BlinkMacSystemFont','sans-serif'],
+        mono:['Space Mono','Courier New','monospace'],
+      },
       fontSize:{
-        '2xs':['10px',{lineHeight:'1.4'}],
+        '2xs':['10px',{lineHeight:'1.4',letterSpacing:'0.08em'}],
         'xs':['11px',{lineHeight:'1.5'}],
         'sm':['13px',{lineHeight:'1.6'}],
         'base':['15px',{lineHeight:'1.65'}],
         'lg':['17px',{lineHeight:'1.5'}],
         'xl':['20px',{lineHeight:'1.3'}],
-        '2xl':['24px',{lineHeight:'1.2'}],
-        '3xl':['30px',{lineHeight:'1.1'}],
-        '4xl':['38px',{lineHeight:'1.05'}],
-        '5xl':['48px',{lineHeight:'1'}],
+        '2xl':['24px',{lineHeight:'1.1'}],
+        '3xl':['32px',{lineHeight:'1.0'}],
+        '4xl':['48px',{lineHeight:'0.95'}],
+        '5xl':['72px',{lineHeight:'0.9'}],
+        'hero':['clamp(64px,10vw,120px)',{lineHeight:'0.88'}],
       }
     }
   }
 }
 </script>
 <style>
-/* Tap button states — class-swapped from JS */
-.tap-btn{flex:1;padding:9px 4px;font-size:11px;border:1px solid #e2e8f0;background:#fff;color:#64748b;border-radius:10px;transition:all .12s;font-weight:500;line-height:1.3;text-align:center;cursor:pointer;font-family:inherit}
-.tap-btn:hover{border-color:#94a3b8;color:#334155}
-.tap-btn.neg{background:#eff6ff;color:#1d4ed8;border-color:#bfdbfe}
-.tap-btn.pos{background:#fffbeb;color:#b45309;border-color:#fde68a}
-.tap-btn.neu{background:#f1f5f9;color:#0f172a;border-color:#94a3b8}
-.dark .tap-btn{background:#1e293b;border-color:#334155;color:#94a3b8}
-.dark .tap-btn:hover{border-color:#475569;color:#cbd5e1}
-.dark .tap-btn.neg{background:#1e3a5f;color:#93c5fd;border-color:#1d4ed8}
-.dark .tap-btn.pos{background:#451a03;color:#fcd34d;border-color:#92400e}
-.dark .tap-btn.neu{background:#334155;color:#f1f5f9;border-color:#64748b}
-@media(max-width:480px){.tap-btn{font-size:10px;padding:8px 2px}}
-/* Ticker tag */
-.tick-tag{font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;flex-shrink:0;letter-spacing:.06em;text-transform:uppercase}
-.tick-live{background:#fee2e2;color:#991b1b}
-.tick-pol{background:#dbeafe;color:#1e40af}
-.tick-eco{background:#fef3c7;color:#92400e}
-.dark .tick-live{background:#450a0a;color:#fca5a5}
-.dark .tick-pol{background:#1e3a5f;color:#93c5fd}
-.dark .tick-eco{background:#451a03;color:#fcd34d}
-/* Ticker fade */
-.tick-text{transition:opacity .3s}
-/* Progress bar */
+/* Tap button — class-swapped from JS */
+.tap-btn{flex:1;padding:10px 4px;font-size:11px;letter-spacing:.03em;border:1px solid #2d2d2d;background:#1c1c1c;color:#5a5a5a;border-radius:8px;transition:all .15s;font-weight:600;line-height:1.3;text-align:center;cursor:pointer;font-family:'Space Grotesk',sans-serif}
+.tap-btn:hover{border-color:#5a5a5a;color:#949494}
+.tap-btn.neg{background:#3cffd0;color:#000000;border-color:#3cffd0}
+.tap-btn.pos{background:#5200ff;color:#ffffff;border-color:#5200ff}
+.tap-btn.neu{background:#2d2d2d;color:#ffffff;border-color:#ffffff}
+/* Light mode tap overrides */
+html:not(.dark) .tap-btn{background:#f8fafc;border-color:#e2e8f0;color:#94a3b8}
+html:not(.dark) .tap-btn:hover{border-color:#94a3b8;color:#475569}
+html:not(.dark) .tap-btn.neg{background:#3cffd0;color:#000000;border-color:#3cffd0}
+html:not(.dark) .tap-btn.pos{background:#5200ff;color:#ffffff;border-color:#5200ff}
+html:not(.dark) .tap-btn.neu{background:#1e293b;color:#ffffff;border-color:#1e293b}
+@media(max-width:480px){.tap-btn{font-size:10px;padding:9px 2px}}
+/* Ticker */
+.tick-tag{font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;flex-shrink:0;letter-spacing:.08em;text-transform:uppercase;font-family:'Space Mono',monospace}
+.tick-live{background:#ff3c3c;color:#ffffff}
+.tick-pol{background:#3cffd0;color:#000000}
+.tick-eco{background:#f0a500;color:#000000}
+.tick-text{transition:opacity .3s;font-family:'Space Grotesk',sans-serif}
+/* Progress */
 #pbar{transition:width .3s ease}
-/* Sidebar scrollbar */
+/* Sidebar scroll */
+.sidebar-scroll{scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.1) transparent}
 .sidebar-scroll::-webkit-scrollbar{width:3px}
 .sidebar-scroll::-webkit-scrollbar-track{background:transparent}
-.sidebar-scroll::-webkit-scrollbar-thumb{background:rgba(148,163,184,.35);border-radius:4px}
+.sidebar-scroll::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:4px}
+/* Explainer left-border */
+.q-explain-block{border-left:2px solid #3cffd0;background:#1c1c1c}
+html:not(.dark) .q-explain-block{border-left:2px solid #4f46e5;background:#f8fafc}
 </style>
 </head>
-<body class="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 antialiased" style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,sans-serif">
-<div id="root" class="max-w-5xl mx-auto"></div>
+<body class="dark min-h-screen antialiased" style="background:#131313;color:#ffffff;font-family:'Space Grotesk',-apple-system,sans-serif">
+<div id="root"></div>
 <script defer src="/_vercel/insights/script.js"></script>
 <script src="js/data.js"></script>
 <script src="js/scoring.js"></script>

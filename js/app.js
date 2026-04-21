@@ -1,4 +1,4 @@
-let S={phase:"intro",cat:0,answers:{},dark:false,showMinor:true,mode:"full",shuffledQS:null,hideCompass:false};
+let S={phase:"intro",cat:0,answers:{},dark:true,showMinor:true,mode:"full",shuffledQS:null,hideCompass:false};
 
 function shuffle(arr){
   const a=[...arr];
@@ -76,16 +76,30 @@ window.themeToggle=()=>{S.dark=!S.dark;applyTheme();const axes=computeAxes(S.ans
 window.toggleCompass=()=>{
   S.hideCompass=!S.hideCompass;
   const btn=$id("compass-toggle-btn");
-  if(btn){btn.textContent=S.hideCompass?"Show live results":"Hide live results";btn.className=S.hideCompass?"minor-toggle":"minor-toggle on";}
+  const mono="font-family:'Space Mono',monospace";
+  const C={surface:'#1c1c1c',surface2:'#242424',border:'#2d2d2d',mint:'#3cffd0',text3:'#5a5a5a'};
+  if(btn){
+    btn.textContent=S.hideCompass?"SHOW":"HIDE";
+    btn.style.border=`1px solid ${S.hideCompass?C.border:C.mint}`;
+    btn.style.background=S.hideCompass?"transparent":"rgba(60,255,208,.1)";
+    btn.style.color=S.hideCompass?C.text3:C.mint;
+  }
   const box=$id("live-results-box");
   if(box){
     if(S.hideCompass){
-      box.innerHTML=`<p style="font-size:12px;color:var(--text3);text-align:center;padding:12px 0">Live results hidden<br><span style="font-size:11px;opacity:0.7">Revealed at the end</span></p>`;
+      box.innerHTML=`<p style="${mono};font-size:10px;color:${C.text3};text-align:center;padding:24px 0;letter-spacing:.08em;text-transform:uppercase">RESULTS HIDDEN<br><span style="opacity:.5;font-size:9px">REVEALED AT THE END</span></p>`;
     } else {
       const axes=computeAxes(S.answers);const hasAny=Object.keys(S.answers).length>0;
       const scored=matchParties(axes);
-      box.innerHTML=`<div class="text-2xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-600 mb-2">Compass</div><canvas id="compass-canvas" class="w-full rounded-xl"></canvas><div class="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800"><div class="flex items-center justify-between mb-2"><span class="text-2xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-600">Party matches</span><button id="minor-toggle-btn" onclick="toggleMinor()" class="text-2xs font-semibold px-2 py-0.5 rounded-full border cursor-pointer ${S.showMinor?"border-slate-300 text-slate-600":"border-slate-200 text-slate-400"}">${S.showMinor?"Hide minor":"Show minor"}</button></div><div id="party-list-box">${sidePartyListHTML(scored,hasAny)}</div></div>`;
-      requestAnimationFrame(()=>drawCompass("compass-canvas",axes,236,236));
+      box.innerHTML=`<canvas id="compass-canvas" style="width:100%;display:block;border-radius:12px;margin-bottom:12px"></canvas>
+<div style="background:${C.surface2};border-radius:12px;padding:12px">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+<span style="${mono};font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:${C.text3}">PARTY MATCHES</span>
+<button id="minor-toggle-btn" onclick="toggleMinor()" style="${mono};font-size:9px;font-weight:700;padding:3px 10px;border-radius:20px;border:1px solid ${C.border};background:transparent;color:${C.text3};cursor:pointer;letter-spacing:.06em;text-transform:uppercase">${S.showMinor?"HIDE MINOR":"SHOW MINOR"}</button>
+</div>
+<div id="party-list-box">${sidePartyListHTML(scored,hasAny)}</div>
+</div>`;
+      requestAnimationFrame(()=>drawCompass("compass-canvas",axes,284,220));
     }
   }
 };
