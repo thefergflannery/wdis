@@ -17,8 +17,8 @@ function drawCompass(canvasId,axes,w,h){
   ctx.beginPath();ctx.moveTo(4,cy);ctx.lineTo(W-4,cy);ctx.stroke();
   ctx.beginPath();ctx.moveTo(cx,4);ctx.lineTo(cx,H-4);ctx.stroke();
   // corner labels
-  const lc=dark?"rgba(255,255,255,0.25)":"rgba(0,0,0,0.3)";
-  ctx.fillStyle=lc;ctx.font=`bold 8px 'Space Mono',monospace`;
+  const lc=dark?"rgba(255,255,255,0.5)":"rgba(0,0,0,0.4)";
+  ctx.fillStyle=lc;ctx.font=`bold 10px 'Space Mono',monospace`;
   ctx.textAlign="left";ctx.fillText("LEFT",6,13);
   ctx.textAlign="right";ctx.fillText("RIGHT",W-6,13);
   ctx.textAlign="left";ctx.fillText("PROG",6,H-5);
@@ -33,8 +33,8 @@ function drawCompass(canvasId,axes,w,h){
     ctx.beginPath();ctx.arc(px,py,4,0,Math.PI*2);
     ctx.fillStyle=p.col;ctx.globalAlpha=0.75;ctx.fill();ctx.globalAlpha=1;
     // label
-    ctx.fillStyle=dark?"rgba(255,255,255,0.45)":"rgba(0,0,0,0.45)";
-    ctx.font=`600 8px 'Space Grotesk',sans-serif`;ctx.textAlign="left";
+    ctx.fillStyle=dark?"rgba(255,255,255,0.65)":"rgba(0,0,0,0.55)";
+    ctx.font=`600 10px 'Space Grotesk',sans-serif`;ctx.textAlign="left";
     ctx.fillText(p.abbr,px+6,py+3);
   });
   // YOU dot — mint on dark, near-black on light
@@ -48,7 +48,7 @@ function drawCompass(canvasId,axes,w,h){
     ctx.fillStyle=dark?"#3cffd0":"#131313";ctx.fill();
     // label
     ctx.fillStyle=dark?"rgba(60,255,208,0.9)":"rgba(0,0,0,0.75)";
-    ctx.font=`bold 9px 'Space Mono',monospace`;ctx.textAlign="left";
+    ctx.font=`bold 11px 'Space Mono',monospace`;ctx.textAlign="left";
     ctx.fillText("YOU",ux+16,uy+4);
   }
 }
