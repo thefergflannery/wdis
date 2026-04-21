@@ -97,6 +97,17 @@ function headerHTML(){
 </div>`;
 }
 
+function footerHTML(){
+  return`<footer style="border-top:1px solid ${C.border};margin-top:64px;padding:32px 0 48px">
+<p style="${sans};font-size:13px;color:${C.text3};line-height:1.8;max-width:720px">
+Created not for profit and for educational purposes by <a href="https://fergflannery.com" target="_blank" rel="noopener" style="color:${C.text2};text-decoration:underline;text-underline-offset:3px">Ferg Flannery</a> · fergflannery.com. All information is gathered from publicly available sources.
+</p>
+<p style="${sans};font-size:12px;color:${C.text3};line-height:1.8;max-width:720px;margin-top:8px">
+This tool does not guarantee the accuracy, completeness, or timeliness of the data, and we are not liable for any decisions made based on this information. Users are encouraged to verify critical information directly with the original source.
+</p>
+</footer>`;
+}
+
 /* ── INTRO ───────────────────────────────── */
 function renderIntro(){
   $id("root").innerHTML=headerHTML()+`
@@ -146,6 +157,7 @@ function renderIntro(){
       ${CATS.map(c=>`<span style="${mono};font-size:12px;padding:5px 12px;border-radius:20px;border:1px solid ${c==="Fuel & Cost of Living"?"#f0a500":C.border};color:${c==="Fuel & Cost of Living"?"#f0a500":C.text3};letter-spacing:.06em;text-transform:uppercase">${c}</span>`).join("")}
     </div>
   </div>
+  ${footerHTML()}
 </div>`;
   applyTheme();startTicker();
   requestAnimationFrame(()=>{
@@ -320,7 +332,8 @@ function renderResults(){
     <button onclick="go('intro')" style="${mono};font-size:11px;font-weight:700;padding:12px 24px;border-radius:24px;border:1px solid ${C.border};background:transparent;color:${C.text2};cursor:pointer;letter-spacing:.06em;transition:all .15s">← START AGAIN</button>
     <button onclick="go('quiz')" style="${mono};font-size:11px;font-weight:700;padding:12px 24px;border-radius:24px;border:1px solid ${C.border};background:transparent;color:${C.text2};cursor:pointer;letter-spacing:.06em;transition:all .15s">EDIT ANSWERS</button>
   </div>
-  <p style="font-size:12px;color:${C.text3};line-height:1.7">Based on GE2024 manifestos, Oireachtas voting records, and published policy positions as of April 2026. For informational purposes only.</p>
+  <p style="font-size:12px;color:${C.text3};line-height:1.7">Based on GE2024 manifestos, Oireachtas voting records, and published policy positions as of April 2026.</p>
+  ${footerHTML()}
 </div>`;
   applyTheme();startTicker();
   requestAnimationFrame(()=>{const cv=$id("compass-canvas");if(cv){const w=cv.parentElement.offsetWidth-32;drawCompass("compass-canvas",axes,w,Math.round(w*.6));}});
