@@ -82,7 +82,7 @@ function newsGridHTML(){
     'tick-live':'#ffffff','tick-pol':'#000000','tick-eco':'#000000'
   };
   return`<div style="${label};margin-bottom:20px">LATEST NEWS — APRIL 2026</div>
-<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:64px">
+<div class="news-grid">
 ${TICKS.map(t=>`<a href="${t.url||'#'}" target="_blank" rel="noopener" style="display:flex;flex-direction:column;gap:12px;background:${C.surface};border:1px solid ${C.border};border-radius:20px;padding:20px 22px;text-decoration:none;transition:border-color .2s" onmouseover="this.style.borderColor='${C.text3}'" onmouseout="this.style.borderColor='${C.border}'">
 <span style="${mono};font-size:10px;font-weight:700;padding:3px 10px;border-radius:6px;background:${tagColors[t.cls]||C.border};color:${tagText[t.cls]||C.text1};letter-spacing:.1em;align-self:flex-start">${t.tag}</span>
 <p style="font-size:14px;font-weight:600;color:${C.text1};line-height:1.55;margin:0;flex:1">${t.text}</p>
@@ -93,7 +93,7 @@ ${TICKS.map(t=>`<a href="${t.url||'#'}" target="_blank" rel="noopener" style="di
 
 function legendHTML(){
   return`<div style="${label};margin-bottom:16px">CURRENTLY REGISTERED PARTIES — AS OF APRIL 2026</div>
-<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin-bottom:40px">${PARTIES.map(p=>`<div style="display:flex;align-items:flex-start;gap:10px;background:${C.surface};border:1px solid ${C.border};border-radius:16px;padding:12px 14px">
+<div class="legend-grid">${PARTIES.map(p=>`<div style="display:flex;align-items:flex-start;gap:10px;background:${C.surface};border:1px solid ${C.border};border-radius:16px;padding:12px 14px">
 <div style="font-size:12px;font-weight:700;flex-shrink:0;width:38px;padding-top:1px;color:${p.col}">${p.abbr}</div>
 <div>
 <div style="font-size:12px;font-weight:600;color:${C.text1};line-height:1.3">${p.url?`<a href="${p.url}" target="_blank" rel="noopener" style="color:inherit;text-decoration:none">${p.name}</a>`:p.name}${p.size==="minor"?`<span style="${mono};font-size:11px;padding:1px 6px;background:${C.surface2};color:${C.text3};border-radius:10px;margin-left:5px;letter-spacing:.06em;text-transform:uppercase">MINOR</span>`:""}</div>
@@ -103,12 +103,12 @@ function legendHTML(){
 
 function headerHTML(){
   return`<div style="position:sticky;top:0;z-index:50;background:${C.canvas}">
-<div style="background:${C.surface};border-bottom:1px solid ${C.border};padding:7px 32px;display:flex;gap:12px;align-items:center;overflow:hidden">
+<div class="tick-bar">
 <span class="tick-tag tick-live" id="tick-tag">LIVE</span>
 <span class="tick-text" id="tick-text" style="font-size:12px;color:${C.text2};flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><a id="tick-link" href="#" target="_blank" rel="noopener" style="color:inherit;text-decoration:none">Loading...</a></span>
-<span style="${mono};font-size:12px;color:${C.text3};flex-shrink:0;letter-spacing:.08em">20 APR 2026</span>
+<span style="${mono};font-size:12px;color:${C.text3};flex-shrink:0;letter-spacing:.08em;white-space:nowrap">20 APR 2026</span>
 </div>
-<nav style="display:flex;align-items:center;padding:14px 32px;border-bottom:1px solid ${C.border}">
+<nav class="site-nav">
 <button onclick="go('intro')" style="${disp};font-size:24px;color:${C.text1};background:none;border:none;cursor:pointer;letter-spacing:.06em;padding:0;line-height:1">TILT<span style="color:${C.mint}">.</span></button>
 </nav>
 </div>`;
@@ -128,13 +128,13 @@ This tool does not guarantee the accuracy, completeness, or timeliness of the da
 /* ── INTRO ───────────────────────────────── */
 function renderIntro(){
   $id("root").innerHTML=headerHTML()+`
-<div style="max-width:1440px;margin:0 auto;padding:0 32px">
+<div class="wrap">
 
   <!-- HERO SPLIT -->
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center;padding:80px 0 64px;border-bottom:1px solid ${C.border}">
+  <div class="hero-grid" style="border-bottom:1px solid ${C.border}">
     <div>
       <p style="${mono};font-size:12px;color:${C.mint};letter-spacing:.16em;text-transform:uppercase;margin-bottom:20px">Republic of Ireland · Political Compass · April 2026</p>
-      <h1 style="${disp};font-size:clamp(72px,9vw,120px);line-height:.88;letter-spacing:.02em;color:${C.text1};margin-bottom:16px">TILT<span style="color:${C.mint}">.</span></h1>
+      <h1 class="hero-wordmark" style="${disp};font-size:clamp(72px,9vw,120px);line-height:.88;letter-spacing:.02em;color:${C.text1};margin-bottom:16px">TILT<span style="color:${C.mint}">.</span></h1>
       <p style="${mono};font-size:14px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:${C.text2};margin-bottom:10px">WHERE DO I CURRENTLY STAND?</p>
       <p style="font-size:16px;color:${C.text2};line-height:1.6;margin-bottom:12px">A guide to your political leaning in Ireland.</p>
       <div style="background:${C.surface};border:1px solid ${C.border};border-radius:12px;padding:12px 16px;margin-bottom:32px;font-size:13px;color:${C.text3};line-height:1.6">
@@ -153,7 +153,7 @@ function renderIntro(){
         </button>
       </div>
     </div>
-    <div>
+    <div class="hero-compass-col">
       <div style="${label};margin-bottom:12px">LIVE PARTY POSITIONS — COMPASS PREVIEW</div>
       <div style="background:${C.surface};border:1px solid ${C.border};border-radius:20px;padding:16px">
         <canvas id="intro-compass" style="width:100%;display:block;border-radius:12px"></canvas>
@@ -237,12 +237,12 @@ function renderQuiz(){
 
   $id("root").innerHTML=headerHTML()+
 `<div style="height:2px;background:${C.border}"><div id="pbar" style="height:100%;background:${C.mint};width:${Math.round((done/qs.length)*100)}%"></div></div>
-<div style="max-width:1440px;margin:0 auto;padding:0 32px">
-<div style="display:flex;gap:8px;flex-wrap:wrap;padding:20px 0 16px;border-bottom:1px solid ${C.border};margin-bottom:24px">${catBtns}</div>
-<div style="display:flex;gap:32px;align-items:flex-start;padding-bottom:64px">
+<div class="wrap">
+<div class="cat-tabs" style="border-bottom:1px solid ${C.border};margin-bottom:24px">${catBtns}</div>
+<div class="quiz-layout">
 
   <!-- SIDEBAR -->
-  <div style="width:300px;flex-shrink:0;position:sticky;top:84px;max-height:calc(100vh - 104px);overflow-y:auto;display:flex;flex-direction:column;gap:12px" class="sidebar-scroll">
+  <div class="quiz-sidebar sidebar-scroll">
     <div style="background:${C.surface};border:1px solid ${C.border};border-radius:20px;padding:16px">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
         <span style="${label}">LIVE RESULTS</span>
@@ -257,7 +257,7 @@ function renderQuiz(){
   </div>
 
   <!-- QUESTIONS -->
-  <div style="flex:1;min-width:0">
+  <div class="quiz-main">
     ${notice}
     <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:6px;flex-wrap:wrap">
       <h2 style="${disp};font-size:32px;color:${C.text1};letter-spacing:.04em">${cat.toUpperCase()}</h2>${modeLbl}
@@ -305,7 +305,7 @@ function renderResults(){
 
   const leanDef=LEAN_DEFS[lean]||"";
   $id("root").innerHTML=headerHTML()+`
-<div style="max-width:1440px;margin:0 auto;padding:0 32px 64px">
+<div class="wrap" style="padding-bottom:64px">
 
   <!-- LEAN HERO -->
   <div style="margin:40px 0;padding:40px 48px;border-radius:20px;background:${C.surface};border:1px solid ${C.border}">
@@ -321,7 +321,7 @@ function renderResults(){
   </div>
 
   <!-- COMPASS + AXIS -->
-  <div style="display:grid;grid-template-columns:3fr 2fr;gap:24px;margin-bottom:40px">
+  <div class="results-grid">
     <div>
       <div style="${label};margin-bottom:14px">YOUR COMPASS POSITION</div>
       <div style="background:${C.surface};border:1px solid ${C.border};border-radius:20px;padding:16px">
