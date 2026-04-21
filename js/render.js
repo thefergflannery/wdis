@@ -143,13 +143,18 @@ function mobileSheetHTML(axes,scored,hasAny,done,total){
 }
 
 function footerHTML(){
-  return`<footer style="border-top:1px solid ${C.border};margin-top:64px;padding:32px 0 48px">
+  return`<footer style="margin-top:48px">
+<div style="overflow:hidden;opacity:0.35;margin-bottom:-1px">
+  <img src="images/elements/Group%204.svg" class="deco-strip" alt="">
+</div>
+<div style="border-top:1px solid ${C.border};padding:32px 0 48px">
 <p style="${sans};font-size:13px;color:${C.text3};line-height:1.8;max-width:720px">
 Created not for profit and for educational purposes by <a href="https://fergflannery.com" target="_blank" rel="noopener" style="color:${C.text2};text-decoration:underline;text-underline-offset:3px">Ferg Flannery</a> · fergflannery.com. All information is gathered from publicly available sources.
 </p>
 <p style="${sans};font-size:12px;color:${C.text3};line-height:1.8;max-width:720px;margin-top:8px">
 This tool does not guarantee the accuracy, completeness, or timeliness of the data, and we are not liable for any decisions made based on this information. Users are encouraged to verify critical information directly with the original source.
 </p>
+</div>
 </footer>`;
 }
 
@@ -159,45 +164,63 @@ function renderIntro(){
 <div class="wrap">
 
   <!-- HERO SPLIT -->
-  <div class="hero-grid" style="border-bottom:1px solid ${C.border}">
-    <div>
-      <p style="${mono};font-size:12px;color:${C.mint};letter-spacing:.16em;text-transform:uppercase;margin-bottom:20px">Republic of Ireland · Political Compass · April 2026</p>
-      <h1 class="hero-wordmark" style="${disp};font-size:clamp(72px,9vw,120px);line-height:.88;letter-spacing:.02em;color:${C.text1};margin-bottom:16px">TILT<span style="color:${C.mint}">.</span></h1>
-      <p style="${mono};font-size:14px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:${C.text2};margin-bottom:10px">WHERE DO I CURRENTLY STAND?</p>
-      <p style="font-size:16px;color:${C.text2};line-height:1.6;margin-bottom:12px">A guide to your political leaning in Ireland.</p>
-      <div style="background:${C.surface};border:1px solid ${C.border};border-radius:12px;padding:12px 16px;margin-bottom:32px;font-size:13px;color:${C.text3};line-height:1.6">
-        Not politically affiliated. Built to help you cut through the noise and map your own views against the policies parties actually stand for.
+  <div style="position:relative;overflow:hidden">
+    <!-- Left ASCII decoration -->
+    <img src="images/elements/Group%203.svg" class="hero-deco"
+         style="position:absolute;left:-48px;top:50%;transform:translateY(-50%);width:clamp(120px,13vw,210px);height:auto;opacity:0.18;z-index:0" alt="">
+    <!-- Right ASCII decoration -->
+    <img src="images/elements/Group%201.svg" class="hero-deco"
+         style="position:absolute;right:-32px;bottom:0;width:clamp(130px,14vw,220px);height:auto;opacity:0.15;z-index:0" alt="">
+    <div class="hero-grid" style="border-bottom:1px solid ${C.border};position:relative;z-index:1">
+      <div>
+        <p style="${mono};font-size:12px;color:${C.mint};letter-spacing:.16em;text-transform:uppercase;margin-bottom:20px">Republic of Ireland · Political Compass · April 2026</p>
+        <h1 class="hero-wordmark" style="${disp};font-size:clamp(72px,9vw,120px);line-height:.88;letter-spacing:.02em;color:${C.text1};margin-bottom:16px">TILT<span style="color:${C.mint}">.</span></h1>
+        <p style="${mono};font-size:14px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:${C.text2};margin-bottom:10px">WHERE DO I CURRENTLY STAND?</p>
+        <p style="font-size:16px;color:${C.text2};line-height:1.6;margin-bottom:12px">A guide to your political leaning in Ireland.</p>
+        <div style="background:${C.surface};border:1px solid ${C.border};border-radius:12px;padding:12px 16px;margin-bottom:32px;font-size:13px;color:${C.text3};line-height:1.6">
+          Not politically affiliated. Built to help you cut through the noise and map your own views against the policies parties actually stand for.
+        </div>
+        <div style="display:flex;gap:12px;flex-wrap:wrap">
+          <button onclick="startQuiz('quick')" style="flex:1;min-width:150px;background:${C.surface};border:1px solid ${C.border};border-radius:24px;padding:16px 24px;text-align:left;cursor:pointer;transition:all .15s" onmouseover="this.style.borderColor='${C.mint}'" onmouseout="this.style.borderColor='${C.border}'">
+            <div style="${disp};font-size:24px;color:${C.text1};letter-spacing:.04em;margin-bottom:4px">QUICK</div>
+            <div style="${mono};font-size:11px;color:${C.text2};letter-spacing:.08em;margin-bottom:6px">10 QUESTIONS · ~3 MIN</div>
+            <div style="font-size:12px;color:${C.text3}">One question per topic</div>
+          </button>
+          <button onclick="startQuiz('full')" style="flex:1;min-width:150px;background:${C.mint};border:1px solid ${C.mint};border-radius:24px;padding:16px 24px;text-align:left;cursor:pointer;transition:all .15s" onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'">
+            <div style="${disp};font-size:24px;color:#000;letter-spacing:.04em;margin-bottom:4px">FULL</div>
+            <div style="${mono};font-size:11px;color:rgba(0,0,0,.7);letter-spacing:.08em;margin-bottom:6px">56 QUESTIONS · ~15 MIN</div>
+            <div style="font-size:12px;color:rgba(0,0,0,.6)">All topics — most accurate</div>
+          </button>
+        </div>
       </div>
-      <div style="display:flex;gap:12px;flex-wrap:wrap">
-        <button onclick="startQuiz('quick')" style="flex:1;min-width:150px;background:${C.surface};border:1px solid ${C.border};border-radius:24px;padding:16px 24px;text-align:left;cursor:pointer;transition:all .15s" onmouseover="this.style.borderColor='${C.mint}'" onmouseout="this.style.borderColor='${C.border}'">
-          <div style="${disp};font-size:24px;color:${C.text1};letter-spacing:.04em;margin-bottom:4px">QUICK</div>
-          <div style="${mono};font-size:11px;color:${C.text2};letter-spacing:.08em;margin-bottom:6px">10 QUESTIONS · ~3 MIN</div>
-          <div style="font-size:12px;color:${C.text3}">One question per topic</div>
-        </button>
-        <button onclick="startQuiz('full')" style="flex:1;min-width:150px;background:${C.mint};border:1px solid ${C.mint};border-radius:24px;padding:16px 24px;text-align:left;cursor:pointer;transition:all .15s" onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'">
-          <div style="${disp};font-size:24px;color:#000;letter-spacing:.04em;margin-bottom:4px">FULL</div>
-          <div style="${mono};font-size:11px;color:rgba(0,0,0,.7);letter-spacing:.08em;margin-bottom:6px">56 QUESTIONS · ~15 MIN</div>
-          <div style="font-size:12px;color:rgba(0,0,0,.6)">All topics — most accurate</div>
-        </button>
-      </div>
-    </div>
-    <div class="hero-compass-col">
-      <div style="${label};margin-bottom:12px">LIVE PARTY POSITIONS — COMPASS PREVIEW</div>
-      <div style="background:${C.surface};border:1px solid ${C.border};border-radius:20px;padding:16px">
-        <canvas id="intro-compass" style="width:100%;display:block;border-radius:12px"></canvas>
-        <div style="${mono};font-size:12px;color:${C.text3};text-align:center;margin-top:10px;letter-spacing:.08em">START ANSWERING TO SEE YOUR POSITION</div>
+      <div class="hero-compass-col">
+        <div style="${label};margin-bottom:12px">LIVE PARTY POSITIONS — COMPASS PREVIEW</div>
+        <div style="background:${C.surface};border:1px solid ${C.border};border-radius:20px;padding:16px">
+          <canvas id="intro-compass" style="width:100%;display:block;border-radius:12px"></canvas>
+          <div style="${mono};font-size:12px;color:${C.text3};text-align:center;margin-top:10px;letter-spacing:.08em">START ANSWERING TO SEE YOUR POSITION</div>
+        </div>
       </div>
     </div>
   </div>
 
+  <!-- DIVIDER STRIP — below hero -->
+  <div style="overflow:hidden;opacity:0.28;margin-top:-1px">
+    <img src="images/elements/Group%205.svg" class="deco-strip" alt="">
+  </div>
+
   <!-- LEGEND -->
-  <div style="padding:56px 0 0">
+  <div style="padding:40px 0 0">
     ${legendHTML()}
   </div>
 
   <!-- NEWS GRID -->
   <div style="padding-top:16px">
     ${newsGridHTML()}
+  </div>
+
+  <!-- DIVIDER STRIP — before topic pills -->
+  <div style="overflow:hidden;opacity:0.22;margin:8px 0">
+    <img src="images/elements/Group%202.svg" class="deco-strip" alt="">
   </div>
 
   <!-- TOPIC PILLS -->
