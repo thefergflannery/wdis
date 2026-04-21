@@ -129,8 +129,18 @@ function renderQuiz(){
 <div class="cat-scroll">${catBtns}</div>
 <div class="two-col">
 <div class="quiz-side">
-<div class="side-section-box"><div class="compass-lbl">Live compass</div><canvas id="compass-canvas" style="width:100%;display:block;border-radius:8px"></canvas></div>
-<div class="side-section-box"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><span class="side-section-lbl" style="margin-bottom:0">Party matches</span><button id="minor-toggle-btn" class="minor-toggle${S.showMinor?" on":""}" onclick="toggleMinor()">${S.showMinor?"Hide minor":"Show minor"}</button></div><div id="party-list-box">${sidePartyListHTML(scored,hasAny)}</div></div>
+<div class="side-section-box">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+<span class="side-section-lbl" style="margin-bottom:0">Live results</span>
+<button id="compass-toggle-btn" class="minor-toggle${S.hideCompass?"":"  on"}" onclick="toggleCompass()">${S.hideCompass?"Show live results":"Hide live results"}</button>
+</div>
+<div id="live-results-box">
+${S.hideCompass
+  ?`<p style="font-size:12px;color:var(--text3);text-align:center;padding:12px 0">Live results hidden<br><span style="font-size:11px;opacity:0.7">Revealed at the end</span></p>`
+  :`<div class="compass-lbl">Live compass</div><canvas id="compass-canvas" style="width:100%;display:block;border-radius:8px"></canvas><div style="height:10px"></div><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><span class="side-section-lbl" style="margin-bottom:0">Party matches</span><button id="minor-toggle-btn" class="minor-toggle${S.showMinor?" on":""}" onclick="toggleMinor()">${S.showMinor?"Hide minor":"Show minor"}</button></div><div id="party-list-box">${sidePartyListHTML(scored,hasAny)}</div>`
+}
+</div>
+</div>
 <div class="side-section-box"><div class="side-section-lbl">Positions by issue</div><div id="axis-box">${sideAxisHTML(axes)}</div></div>
 </div>
 <div class="quiz-main">
@@ -150,7 +160,7 @@ ${!catDone?`<p style="font-size:12px;color:var(--text3);text-align:right;margin-
 </div>
 </div>`;
   applyTheme();startTicker();
-  requestAnimationFrame(()=>drawCompass("compass-canvas",axes,236,236));
+  if(!S.hideCompass)requestAnimationFrame(()=>drawCompass("compass-canvas",axes,236,236));
 }
 
 function renderResults(){
