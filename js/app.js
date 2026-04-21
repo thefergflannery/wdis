@@ -1,4 +1,4 @@
-let S={phase:"intro",cat:0,answers:{},dark:true,showMinor:true,mode:"full",shuffledQS:null,hideCompass:false};
+let S={phase:"intro",cat:0,answers:{},dark:true,showMinor:true,mode:"full",shuffledQS:null,shuffledCATS:null,hideCompass:false};
 
 function shuffle(arr){
   const a=[...arr];
@@ -8,13 +8,15 @@ function shuffle(arr){
 
 function buildShuffledQS(mode){
   const base=mode==="quick"?QS.filter(q=>QUICK_IDS.has(q.id)):[...QS];
-  // shuffle within each category independently
+  const cats=shuffle([...CATS]);
+  S.shuffledCATS=cats;
   const byCat={};
   base.forEach(q=>{(byCat[q.cat]=byCat[q.cat]||[]).push(q);});
-  return CATS.flatMap(c=>byCat[c]?shuffle(byCat[c]):[]);
+  return cats.flatMap(c=>byCat[c]?shuffle(byCat[c]):[]);
 }
 
 function activeQS(){return S.shuffledQS||(S.mode==="quick"?QS.filter(q=>QUICK_IDS.has(q.id)):QS);}
+function activeCATS(){return S.shuffledCATS||CATS;}
 
 function $id(id){return document.getElementById(id)}
 
@@ -48,9 +50,9 @@ window.startQuiz=mode=>{S.mode=mode;S.answers={};S.cat=0;S.phase="quiz";S.shuffl
 window.setCat=i=>{S.cat=i;render();};
 window.prevCat=()=>{if(S.cat>0){S.cat--;render();}};
 window.nextCat=()=>{
-  const catQs=activeQS().filter(q=>q.cat===CATS[S.cat]);
+  const catQs=activeQS().filter(q=>q.cat===activeCATS()[S.cat]);
   if(!catQs.every(q=>S.answers[q.id]!==undefined))return;
-  if(S.cat<CATS.length-1){S.cat++;render();}else go("results");
+  if(S.cat<activeCATS().length-1){S.cat++;render();}else go("results");
 };
 window.setAns=(id,v)=>{
   S.answers[id]=Number(v);
@@ -83,9 +85,14 @@ window.setAns=(id,v)=>{
   const answeredCount=Object.keys(S.answers).length;
   const fc=$id("mobile-fab-count");if(fc)fc.textContent=`${answeredCount}/${activeQS().length}`;
   const pb=$id("pbar");if(pb)pb.style.width=Math.round((answeredCount/activeQS().length)*100)+"%";
-  const catQs=activeQS().filter(q=>q.cat===CATS[S.cat]);
+  const catQs=activeQS().filter(q=>q.cat===activeCATS()[S.cat]);
   const catDone=catQs.every(q=>S.answers[q.id]!==undefined);
-  const btn=$id("next-btn");if(btn)btn.disabled=!catDone;
+  const btn=$id("next-btn");
+  if(btn){
+    btn.disabled=!catDone;
+    btn.style.opacity=catDone?"1":"0.3";
+    btn.style.cursor=catDone?"pointer":"not-allowed";
+  }
 };
 window.showResultsSheet=()=>{
   const sheet=$id("results-sheet"),bd=$id("results-backdrop");

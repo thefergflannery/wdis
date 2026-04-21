@@ -121,7 +121,7 @@ function mobileSheetHTML(axes,scored,hasAny,done,total){
   <div style="padding:0 20px 40px">
     <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 0 14px;border-bottom:1px solid ${C.border};margin-bottom:16px">
       <div>
-        <span style="${label}">LIVE RESULTS</span>
+        <span style="${label}">VIEW POSITION</span>
         <span style="${mono};font-size:11px;color:${C.text3};margin-left:12px;letter-spacing:.06em">${done}/${total} ANSWERED</span>
       </div>
       <button onclick="hideResultsSheet()" style="${mono};font-size:11px;font-weight:700;padding:8px 16px;border-radius:20px;border:1px solid ${C.border};background:transparent;color:${C.text2};cursor:pointer;letter-spacing:.06em;transition:all .15s" onmouseover="this.style.borderColor='${C.text2}'" onmouseout="this.style.borderColor='${C.border}'">CLOSE ✕</button>
@@ -204,7 +204,7 @@ function renderIntro(){
   <div style="padding-bottom:64px">
     <div style="${label};margin-bottom:16px">TOPICS COVERED — ${CATS.length} CATEGORIES</div>
     <div style="display:flex;flex-wrap:wrap;gap:8px">
-      ${CATS.map(c=>`<span style="${mono};font-size:12px;padding:5px 12px;border-radius:20px;border:1px solid ${c==="Fuel & Cost of Living"?"#f0a500":C.border};color:${c==="Fuel & Cost of Living"?"#f0a500":C.text3};letter-spacing:.06em;text-transform:uppercase">${c}</span>`).join("")}
+      ${CATS.map(c=>`<span style="${mono};font-size:12px;padding:5px 12px;border-radius:20px;border:1px solid ${C.border};color:${C.text3};letter-spacing:.06em;text-transform:uppercase">${c}</span>`).join("")}
     </div>
   </div>
   ${footerHTML()}
@@ -219,7 +219,7 @@ function renderIntro(){
 /* ── QUIZ ────────────────────────────────── */
 function renderQuiz(){
   const qs=activeQS();
-  const cat=CATS[S.cat];
+  const cat=activeCATS()[S.cat];
   const catQs=qs.filter(q=>q.cat===cat);
   const axes=computeAxes(S.answers);
   const scored=matchParties(axes);
@@ -228,7 +228,7 @@ function renderQuiz(){
   const hasAny=done>0;
   const modeLbl=S.mode==="quick"?`<span style="${mono};font-size:11px;padding:3px 10px;border-radius:20px;background:rgba(240,165,0,.15);color:#f0a500;border:1px solid rgba(240,165,0,.3);letter-spacing:.08em;margin-left:10px">QUICK MODE</span>`:``;
 
-  const catBtns=CATS.map((c,i)=>{
+  const catBtns=activeCATS().map((c,i)=>{
     const cqs=qs.filter(q=>q.cat===c);if(!cqs.length)return"";
     const cd=cqs.every(q=>S.answers[q.id]!==undefined);
     const isActive=i===S.cat;
@@ -273,7 +273,7 @@ function renderQuiz(){
   <div class="quiz-sidebar sidebar-scroll">
     <div style="background:${C.surface};border:1px solid ${C.border};border-radius:20px;padding:16px">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-        <span style="${label}">LIVE RESULTS</span>
+        <span style="${label}">VIEW POSITION</span>
         <button id="compass-toggle-btn" onclick="toggleCompass()" style="${mono};font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;border:1px solid ${S.hideCompass?C.border:C.mint};background:${S.hideCompass?'transparent':'rgba(60,255,208,.1)'};color:${S.hideCompass?C.text3:C.mint};cursor:pointer;letter-spacing:.06em;text-transform:uppercase">${S.hideCompass?"SHOW":"HIDE"}</button>
       </div>
       <div id="live-results-box">${liveBox}</div>
@@ -296,7 +296,7 @@ function renderQuiz(){
       <button onclick="prevCat()" ${S.cat===0?"disabled":""} style="${mono};font-size:11px;font-weight:700;padding:12px 24px;border-radius:24px;border:1px solid ${C.border};background:transparent;color:${C.text2};cursor:pointer;letter-spacing:.06em;transition:all .15s;disabled:opacity:.3">← BACK</button>
       <div style="display:flex;gap:12px;align-items:center">
         ${done>=Math.floor(qs.length/2)?`<button onclick="go('results')" style="${mono};font-size:12px;color:${C.text3};background:none;border:none;cursor:pointer;letter-spacing:.06em;text-decoration:underline;text-underline-offset:3px">SKIP TO RESULTS</button>`:""}
-        <button id="next-btn" onclick="nextCat()" ${!catDone?"disabled":""} style="${mono};font-size:11px;font-weight:700;padding:12px 28px;border-radius:24px;border:none;background:${C.mint};color:#000;cursor:pointer;letter-spacing:.06em;transition:all .15s;${!catDone?"opacity:.3;cursor:not-allowed":""}">${S.cat===CATS.length-1?"SEE RESULTS →":"NEXT: "+CATS[S.cat+1].toUpperCase()+" →"}</button>
+        <button id="next-btn" onclick="nextCat()" ${!catDone?"disabled":""} style="${mono};font-size:11px;font-weight:700;padding:12px 28px;border-radius:24px;border:none;background:${C.mint};color:#000;cursor:pointer;letter-spacing:.06em;transition:all .15s;${!catDone?"opacity:.3;cursor:not-allowed":""}">${S.cat===activeCATS().length-1?"SEE RESULTS →":"NEXT: "+activeCATS()[S.cat+1].toUpperCase()+" →"}</button>
       </div>
     </div>
     ${!catDone?`<p style="${mono};font-size:12px;color:${C.text3};text-align:right;letter-spacing:.06em;margin-top:8px">ANSWER ALL QUESTIONS TO CONTINUE</p>`:""}
@@ -308,7 +308,7 @@ function renderQuiz(){
 </div>
 ${mobileSheetHTML(axes,scored,hasAny,done,qs.length)}
 <button class="mobile-fab" id="mobile-fab" onclick="showResultsSheet()">
-  <span>LIVE RESULTS</span>
+  <span>VIEW POSITION</span>
   <span id="mobile-fab-count" style="opacity:.65;font-size:10px">${done}/${qs.length}</span>
 </button>`;
   document.body.style.overflow="";
