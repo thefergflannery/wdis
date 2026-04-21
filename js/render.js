@@ -114,6 +114,34 @@ function headerHTML(){
 </div>`;
 }
 
+function mobileSheetHTML(axes,scored,hasAny,done,total){
+  return`<div class="results-backdrop" id="results-backdrop" onclick="hideResultsSheet()"></div>
+<div class="results-sheet" id="results-sheet">
+  <div class="sheet-handle"></div>
+  <div style="padding:0 20px 40px">
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 0 14px;border-bottom:1px solid ${C.border};margin-bottom:16px">
+      <div>
+        <span style="${label}">LIVE RESULTS</span>
+        <span style="${mono};font-size:11px;color:${C.text3};margin-left:12px;letter-spacing:.06em">${done}/${total} ANSWERED</span>
+      </div>
+      <button onclick="hideResultsSheet()" style="${mono};font-size:11px;font-weight:700;padding:8px 16px;border-radius:20px;border:1px solid ${C.border};background:transparent;color:${C.text2};cursor:pointer;letter-spacing:.06em;transition:all .15s" onmouseover="this.style.borderColor='${C.text2}'" onmouseout="this.style.borderColor='${C.border}'">CLOSE ✕</button>
+    </div>
+    <canvas id="mobile-compass-canvas" style="width:100%;display:block;border-radius:12px;margin-bottom:16px"></canvas>
+    <div style="background:${C.surface2};border-radius:12px;padding:14px;margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <span style="${label}">PARTY MATCHES</span>
+        <button id="mobile-minor-toggle-btn" onclick="toggleMinor()" style="${mono};font-size:11px;font-weight:700;padding:4px 12px;border-radius:20px;border:1px solid ${C.border};background:transparent;color:${C.text3};cursor:pointer;letter-spacing:.06em;text-transform:uppercase">${S.showMinor?"HIDE MINOR":"SHOW MINOR"}</button>
+      </div>
+      <div id="mobile-party-list-box">${sidePartyListHTML(scored,hasAny)}</div>
+    </div>
+    <div style="background:${C.surface};border:1px solid ${C.border};border-radius:12px;padding:14px">
+      <div style="${label};margin-bottom:12px">BY ISSUE</div>
+      <div id="mobile-axis-box">${sideAxisHTML(axes)}</div>
+    </div>
+  </div>
+</div>`;
+}
+
 function footerHTML(){
   return`<footer style="border-top:1px solid ${C.border};margin-top:64px;padding:32px 0 48px">
 <p style="${sans};font-size:13px;color:${C.text3};line-height:1.8;max-width:720px">
@@ -275,7 +303,15 @@ function renderQuiz(){
   </div>
 
 </div>
-</div>`;
+
+</div>
+</div>
+${mobileSheetHTML(axes,scored,hasAny,done,qs.length)}
+<button class="mobile-fab" id="mobile-fab" onclick="showResultsSheet()">
+  <span>LIVE RESULTS</span>
+  <span id="mobile-fab-count" style="opacity:.65;font-size:10px">${done}/${qs.length}</span>
+</button>`;
+  document.body.style.overflow="";
   applyTheme();startTicker();
   if(!S.hideCompass)requestAnimationFrame(()=>drawCompass("compass-canvas",axes,300,240));
 }

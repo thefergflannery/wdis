@@ -65,16 +65,43 @@ window.setAns=(id,v)=>{
   const card=$id(`card-${id}`);if(card)card.className="q-card answered";
   const axes=computeAxes(S.answers);
   const hasAny=Object.keys(axes).length>0;
+  const scored=matchParties(axes);
   if(!S.hideCompass){
     drawCompass("compass-canvas",axes,236,236);
-    const scored=matchParties(axes);
     const pl=$id("party-list-box");if(pl)pl.innerHTML=sidePartyListHTML(scored,hasAny);
   }
   const ab=$id("axis-box");if(ab)ab.innerHTML=sideAxisHTML(axes);
-  const pb=$id("pbar");if(pb)pb.style.width=Math.round((Object.keys(S.answers).length/activeQS().length)*100)+"%";
+  // Update mobile sheet if present
+  const mpl=$id("mobile-party-list-box");if(mpl)mpl.innerHTML=sidePartyListHTML(scored,hasAny);
+  const mab=$id("mobile-axis-box");if(mab)mab.innerHTML=sideAxisHTML(axes);
+  const sheet=$id("results-sheet");
+  if(sheet&&sheet.classList.contains("open")){
+    const mcv=$id("mobile-compass-canvas");
+    if(mcv){const w=mcv.parentElement.offsetWidth;requestAnimationFrame(()=>drawCompass("mobile-compass-canvas",axes,w,Math.round(w*.65)));}
+  }
+  // Update FAB count
+  const answeredCount=Object.keys(S.answers).length;
+  const fc=$id("mobile-fab-count");if(fc)fc.textContent=`${answeredCount}/${activeQS().length}`;
+  const pb=$id("pbar");if(pb)pb.style.width=Math.round((answeredCount/activeQS().length)*100)+"%";
   const catQs=activeQS().filter(q=>q.cat===CATS[S.cat]);
   const catDone=catQs.every(q=>S.answers[q.id]!==undefined);
   const btn=$id("next-btn");if(btn)btn.disabled=!catDone;
+};
+window.showResultsSheet=()=>{
+  const sheet=$id("results-sheet"),bd=$id("results-backdrop");
+  if(!sheet)return;
+  sheet.classList.add("open");if(bd)bd.classList.add("open");
+  document.body.style.overflow="hidden";
+  const axes=computeAxes(S.answers);
+  requestAnimationFrame(()=>{
+    const mcv=$id("mobile-compass-canvas");
+    if(mcv){const w=mcv.parentElement.offsetWidth||Math.min(window.innerWidth-40,480);drawCompass("mobile-compass-canvas",axes,w,Math.round(w*.65));}
+  });
+};
+window.hideResultsSheet=()=>{
+  const sheet=$id("results-sheet"),bd=$id("results-backdrop");
+  if(sheet)sheet.classList.remove("open");if(bd)bd.classList.remove("open");
+  document.body.style.overflow="";
 };
 window.themeToggle=()=>{S.dark=!S.dark;applyTheme();const axes=computeAxes(S.answers);if(!S.hideCompass)drawCompass("compass-canvas",axes);};
 window.toggleCompass=()=>{
@@ -109,13 +136,14 @@ window.toggleCompass=()=>{
 };
 window.toggleMinor=()=>{
   S.showMinor=!S.showMinor;
-  const btn=$id("minor-toggle-btn");
-  if(btn)btn.textContent=S.phase==="results"?(S.showMinor?"Hide minor parties":"Show minor parties"):(S.showMinor?"Hide minor":"Show minor");
+  const lbl=S.showMinor?"HIDE MINOR":"SHOW MINOR";
+  [$id("minor-toggle-btn"),$id("mobile-minor-toggle-btn")].forEach(b=>{if(b)b.textContent=S.phase==="results"?(S.showMinor?"HIDE MINOR PARTIES":"SHOW MINOR PARTIES"):lbl;});
   if(S.phase==="quiz"){
     const axes=computeAxes(S.answers);const hasAny=Object.keys(S.answers).length>0;
     const scored=matchParties(axes);
     drawCompass("compass-canvas",axes,236,236);
     const pl=$id("party-list-box");if(pl)pl.innerHTML=sidePartyListHTML(scored,hasAny);
+    const mpl=$id("mobile-party-list-box");if(mpl)mpl.innerHTML=sidePartyListHTML(scored,hasAny);
   } else if(S.phase==="results"){
     const axes=computeAxes(S.answers);const scored=matchParties(axes);
     const list=S.showMinor?scored:scored.filter(p=>p.size!=="minor");
