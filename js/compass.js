@@ -1,4 +1,4 @@
-function drawCompass(canvasId,axes,w,h){
+function drawCompass(canvasId,axes,w,h,avgPos){
   const cv=$id(canvasId);if(!cv)return;
   cv.width=w||300;cv.height=h||220;
   const ctx=cv.getContext("2d");
@@ -40,15 +40,23 @@ function drawCompass(canvasId,axes,w,h){
   // YOU dot — mint on dark, near-black on light
   if(hasAny){
     const ux=cx+pos.x*sc;const uy=cy-pos.y*sc;
-    // outer ring
     ctx.beginPath();ctx.arc(ux,uy,14,0,Math.PI*2);
     ctx.strokeStyle=dark?"rgba(60,255,208,0.3)":"rgba(0,0,0,0.2)";ctx.lineWidth=1.5;ctx.stroke();
-    // fill
     ctx.beginPath();ctx.arc(ux,uy,9,0,Math.PI*2);
     ctx.fillStyle=dark?"#3cffd0":"#131313";ctx.fill();
-    // label
     ctx.fillStyle=dark?"rgba(60,255,208,0.9)":"rgba(0,0,0,0.75)";
     ctx.font=`bold 11px 'Space Mono',monospace`;ctx.textAlign="left";
     ctx.fillText("YOU",ux+16,uy+4);
+  }
+  // OVERALL AVERAGE dot — amber/gold
+  if(avgPos){
+    const ax=cx+avgPos.x*sc;const ay=cy-avgPos.y*sc;
+    ctx.beginPath();ctx.arc(ax,ay,14,0,Math.PI*2);
+    ctx.strokeStyle="rgba(255,200,0,0.25)";ctx.lineWidth=1.5;ctx.stroke();
+    ctx.beginPath();ctx.arc(ax,ay,8,0,Math.PI*2);
+    ctx.fillStyle="#ffc800";ctx.globalAlpha=0.85;ctx.fill();ctx.globalAlpha=1;
+    ctx.fillStyle="#ffc800";
+    ctx.font=`bold 10px 'Space Mono',monospace`;ctx.textAlign="left";
+    ctx.fillText("AVG",ax+13,ay+4);
   }
 }

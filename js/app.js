@@ -1,4 +1,4 @@
-let S={phase:"intro",cat:0,answers:{},dark:true,showMinor:true,mode:"full",shuffledQS:null,shuffledCATS:null,hideCompass:false};
+let S={phase:"intro",cat:0,answers:{},dark:true,showMinor:true,mode:"full",shuffledQS:null,shuffledCATS:null,hideCompass:false,showAverage:false};
 
 function shuffle(arr){
   const a=[...arr];
@@ -45,7 +45,33 @@ function applyTheme(){
   const btn=$id("theme-btn");if(btn)btn.textContent=S.dark?"☀ Light":"☾ Dark";
 }
 
-window.go=p=>{S.phase=p;if(p==="quiz"&&S.cat===undefined)S.cat=0;render();};
+function getStoredAvg(){
+  try{
+    const a=JSON.parse(localStorage.getItem('tilt_results')||'[]');
+    if(!a.length)return null;
+    const mx=a.reduce((s,r)=>s+r.x,0)/a.length;
+    const my=a.reduce((s,r)=>s+r.y,0)/a.length;
+    return{x:Math.round(mx*100)/100,y:Math.round(my*100)/100,n:a.length};
+  }catch(e){return null;}
+}
+
+window.go=p=>{
+  S.phase=p;
+  if(p==="quiz"&&S.cat===undefined)S.cat=0;
+  if(p==="results"){
+    // Save aggregate position — no personal data, just {x,y} floats
+    try{
+      const axes=computeAxes(S.answers);
+      if(Object.keys(axes).length>2){
+        const pos=computePos(axes);
+        const stored=JSON.parse(localStorage.getItem('tilt_results')||'[]');
+        stored.push({x:Math.round(pos.x*100)/100,y:Math.round(pos.y*100)/100});
+        localStorage.setItem('tilt_results',JSON.stringify(stored.slice(-2000)));
+      }
+    }catch(e){}
+  }
+  render();
+};
 window.startQuiz=mode=>{S.mode=mode;S.answers={};S.cat=0;S.phase="quiz";S.shuffledQS=buildShuffledQS(mode);render();};
 window.setCat=i=>{S.cat=i;render();};
 window.prevCat=()=>{if(S.cat>0){S.cat--;render();}};
@@ -111,6 +137,37 @@ window.hideResultsSheet=()=>{
   document.body.style.overflow="";
 };
 window.themeToggle=()=>{S.dark=!S.dark;applyTheme();const axes=computeAxes(S.answers);if(!S.hideCompass)drawCompass("compass-canvas",axes);};
+window.toggleAverage=()=>{
+  S.showAverage=!S.showAverage;
+  const btn=$id("avg-toggle-btn");
+  const avgPos=S.showAverage?getStoredAvg():null;
+  if(btn){
+    btn.textContent=S.showAverage?"HIDE AVG":"OVERALL AVERAGE ✦";
+    btn.style.borderColor=S.showAverage?C.mint:C.border;
+    btn.style.color=S.showAverage?C.mint:C.text3;
+    btn.style.background=S.showAverage?"rgba(60,255,208,.08)":"transparent";
+  }
+  // update disclaimer line
+  const compass=btn?btn.closest('[style]')?.querySelector('p[style*="average"]'):null;
+  const canvasWrap=$id("intro-compass")?.parentElement;
+  if(canvasWrap){
+    let disc=canvasWrap.querySelector('.avg-disc');
+    if(S.showAverage&&!disc){
+      disc=document.createElement('p');
+      disc.className='avg-disc';
+      disc.style.cssText=`font-family:'Space Mono',monospace;font-size:10px;color:${C.text3};text-align:center;margin-top:8px;line-height:1.6;letter-spacing:.04em`;
+      disc.textContent='* This is the average result over time. Data only correlates to final results. NO PERSONAL DATA is stored.';
+      canvasWrap.appendChild(disc);
+    } else if(!S.showAverage&&disc){
+      disc.remove();
+    }
+  }
+  const cv=$id("intro-compass");
+  if(cv){
+    const w=cv.parentElement.offsetWidth-32;
+    drawCompass("intro-compass",{},w,Math.round(w*.7),avgPos);
+  }
+};
 window.toggleCompass=()=>{
   S.hideCompass=!S.hideCompass;
   const btn=$id("compass-toggle-btn");

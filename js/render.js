@@ -75,20 +75,57 @@ function sideAxisHTML(axes){
 }
 
 function newsGridHTML(){
-  const tagColors={
-    'tick-live':'#ff3c3c','tick-pol':'#3cffd0','tick-eco':'#f0a500'
-  };
-  const tagText={
-    'tick-live':'#ffffff','tick-pol':'#000000','tick-eco':'#000000'
-  };
-  return`<div style="${label};margin-bottom:20px">LATEST NEWS — APRIL 2026</div>
-<div class="news-grid">
-${TICKS.map(t=>`<a href="${t.url||'#'}" target="_blank" rel="noopener" style="display:flex;flex-direction:column;gap:12px;background:${C.surface};border:1px solid ${C.border};border-radius:20px;padding:20px 22px;text-decoration:none;transition:border-color .2s" onmouseover="this.style.borderColor='${C.text3}'" onmouseout="this.style.borderColor='${C.border}'">
-<span style="${mono};font-size:10px;font-weight:700;padding:3px 10px;border-radius:6px;background:${tagColors[t.cls]||C.border};color:${tagText[t.cls]||C.text1};letter-spacing:.1em;align-self:flex-start">${t.tag}</span>
+  const skeleton=`<div style="background:${C.surface};border:1px solid ${C.border};border-radius:20px;padding:20px 22px;min-height:148px;display:flex;flex-direction:column;gap:12px">
+<div style="width:64px;height:18px;background:${C.border};border-radius:6px;animation:tilt-pulse 1.4s ease-in-out infinite"></div>
+<div style="flex:1;background:${C.border};border-radius:6px;opacity:.45;animation:tilt-pulse 1.4s ease-in-out infinite .15s"></div>
+<div style="width:90px;height:12px;background:${C.border};border-radius:6px;opacity:.35;animation:tilt-pulse 1.4s ease-in-out infinite .3s"></div>
+</div>`;
+  return`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+<span style="${label}">LATEST NEWS</span>
+<span id="news-updated" style="${mono};font-size:10px;color:${C.text3};letter-spacing:.06em"></span>
+</div>
+<div class="news-grid" id="news-grid-dynamic">${skeleton}${skeleton}${skeleton}</div>`;
+}
+
+async function loadNewsGrid(){
+  const sources=[
+    {url:'https://www.rte.ie/news/rss/news-politics.xml',tag:'POLITICS',bg:'#3cffd0',fg:'#000'},
+    {url:'https://www.rte.ie/news/rss/news-ireland.xml',tag:'IRELAND',bg:'#ff3c3c',fg:'#fff'},
+    {url:'https://www.thejournal.ie/feed/',tag:'NEWS',bg:'#f0a500',fg:'#000'},
+  ];
+  const proxy='https://api.rss2json.com/v1/api.json?count=1&rss_url=';
+  const results=await Promise.allSettled(
+    sources.map(s=>fetch(proxy+encodeURIComponent(s.url),{cache:'no-store'})
+      .then(r=>r.json()).then(d=>({...s,item:d.items?.[0]})))
+  );
+  const cards=results
+    .filter(r=>r.status==='fulfilled'&&r.value.item)
+    .map(r=>{
+      const{tag,bg,fg,item}=r.value;
+      const date=new Date(item.pubDate).toLocaleDateString('en-IE',{day:'numeric',month:'short',year:'numeric'});
+      return`<a href="${item.link}" target="_blank" rel="noopener" style="${sans};display:flex;flex-direction:column;gap:12px;background:${C.surface};border:1px solid ${C.border};border-radius:20px;padding:20px 22px;text-decoration:none;transition:border-color .2s" onmouseover="this.style.borderColor='${C.text3}'" onmouseout="this.style.borderColor='${C.border}'">
+<span style="${mono};font-size:10px;font-weight:700;padding:3px 10px;border-radius:6px;background:${bg};color:${fg};letter-spacing:.1em;align-self:flex-start">${tag}</span>
+<p style="font-size:14px;font-weight:600;color:${C.text1};line-height:1.55;margin:0;flex:1">${item.title}</p>
+<div style="display:flex;justify-content:space-between;align-items:center">
+<span style="${mono};font-size:11px;color:${C.text3};letter-spacing:.06em">${date}</span>
+<span style="${mono};font-size:11px;color:${C.text3};letter-spacing:.06em">READ MORE →</span>
+</div></a>`;
+    });
+  const box=document.getElementById('news-grid-dynamic');
+  if(!box)return;
+  if(cards.length>0){
+    box.innerHTML=cards.join('');
+    const upd=document.getElementById('news-updated');
+    if(upd)upd.textContent='Updated '+new Date().toLocaleTimeString('en-IE',{hour:'2-digit',minute:'2-digit'});
+  } else {
+    // fallback to static TICKS data
+    const tagMap={'tick-live':{bg:'#ff3c3c',fg:'#fff'},'tick-pol':{bg:'#3cffd0',fg:'#000'},'tick-eco':{bg:'#f0a500',fg:'#000'}};
+    box.innerHTML=TICKS.slice(0,3).map(t=>{const tc=tagMap[t.cls]||{bg:C.border,fg:C.text1};return`<a href="${t.url||'#'}" target="_blank" rel="noopener" style="${sans};display:flex;flex-direction:column;gap:12px;background:${C.surface};border:1px solid ${C.border};border-radius:20px;padding:20px 22px;text-decoration:none" >
+<span style="${mono};font-size:10px;font-weight:700;padding:3px 10px;border-radius:6px;background:${tc.bg};color:${tc.fg};letter-spacing:.1em;align-self:flex-start">${t.tag}</span>
 <p style="font-size:14px;font-weight:600;color:${C.text1};line-height:1.55;margin:0;flex:1">${t.text}</p>
 <span style="${mono};font-size:11px;color:${C.text3};letter-spacing:.06em">READ MORE →</span>
-</a>`).join("")}
-</div>`;
+</a>`;}).join('');
+  }
 }
 
 function legendHTML(){
@@ -143,11 +180,11 @@ function mobileSheetHTML(axes,scored,hasAny,done,total){
 }
 
 function footerHTML(){
-  return`<footer style="border-top:1px solid ${C.border};margin-top:64px;padding:32px 0 48px">
-<p style="${sans};font-size:13px;color:${C.text3};line-height:1.8;max-width:720px">
-Created not for profit and for educational purposes by <a href="https://fergflannery.com" target="_blank" rel="noopener" style="color:${C.text2};text-decoration:underline;text-underline-offset:3px">Ferg Flannery</a> · fergflannery.com. All information is gathered from publicly available sources.
+  return`<footer style="background:${C.mint};margin-top:64px;padding:32px 40px 48px;border-radius:20px 20px 0 0">
+<p style="${sans};font-size:13px;color:#000;line-height:1.8;max-width:720px">
+Created not for profit and for educational purposes by <a href="https://fergflannery.com" target="_blank" rel="noopener" style="color:#000;text-decoration:underline;text-underline-offset:3px">Ferg Flannery</a> · fergflannery.com. All information is gathered from publicly available sources.
 </p>
-<p style="${sans};font-size:12px;color:${C.text3};line-height:1.8;max-width:720px;margin-top:8px">
+<p style="${sans};font-size:12px;color:rgba(0,0,0,0.6);line-height:1.8;max-width:720px;margin-top:8px">
 This tool does not guarantee the accuracy, completeness, or timeliness of the data, and we are not liable for any decisions made based on this information. Users are encouraged to verify critical information directly with the original source.
 </p>
 </footer>`;
@@ -182,10 +219,14 @@ function renderIntro(){
       </div>
     </div>
     <div class="hero-compass-col">
-      <div style="${label};margin-bottom:12px">LIVE PARTY POSITIONS — COMPASS PREVIEW</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <span style="${label}">PARTY POSITIONS PREVIEW</span>
+        <button id="avg-toggle-btn" onclick="toggleAverage()" style="${mono};font-size:10px;font-weight:700;padding:4px 12px;border-radius:20px;border:1px solid ${C.border};background:transparent;color:${C.text3};cursor:pointer;letter-spacing:.06em;text-transform:uppercase;transition:all .15s">${S.showAverage?'HIDE AVG':'OVERALL AVERAGE ✦'}</button>
+      </div>
       <div style="background:${C.surface};border:1px solid ${C.border};border-radius:20px;padding:16px">
         <canvas id="intro-compass" style="width:100%;display:block;border-radius:12px"></canvas>
-        <div style="${mono};font-size:12px;color:${C.text3};text-align:center;margin-top:10px;letter-spacing:.08em">START ANSWERING TO SEE YOUR POSITION</div>
+        <div style="${mono};font-size:12px;color:${C.mint};text-align:center;margin-top:10px;letter-spacing:.08em">START ANSWERING TO SEE YOUR POSITION</div>
+        ${S.showAverage?`<p style="${mono};font-size:10px;color:${C.text3};text-align:center;margin-top:8px;line-height:1.6;letter-spacing:.04em">* This is the average result over time. Data only correlates to final results. NO PERSONAL DATA is stored.</p>`:''}
       </div>
     </div>
   </div>
@@ -210,9 +251,19 @@ function renderIntro(){
   ${footerHTML()}
 </div>`;
   applyTheme();startTicker();
+  loadNewsGrid();
   requestAnimationFrame(()=>{
     const cv=$id("intro-compass");
-    if(cv){const w=cv.parentElement.offsetWidth-32;cv.width=w;cv.height=Math.round(w*.7);drawCompass("intro-compass",{},w,Math.round(w*.7));}
+    if(cv){
+      const w=cv.parentElement.offsetWidth-32;
+      cv.width=w;cv.height=Math.round(w*.7);
+      const avgPos=S.showAverage?getStoredAvg():null;
+      drawCompass("intro-compass",{},w,Math.round(w*.7),avgPos);
+      if(S.showAverage){
+        const btn=$id("avg-toggle-btn");
+        if(btn){btn.style.borderColor=C.mint;btn.style.color=C.mint;btn.style.background='rgba(60,255,208,.08)';}
+      }
+    }
   });
 }
 
