@@ -489,190 +489,144 @@ function renderGuide(){
   const pos=hasResults?computePos(axes):null;
   const [myLean]=hasResults?getLean(pos.x,pos.y):[""];
   const isMine=(lean)=>lean.toLowerCase()===myLean.toLowerCase();
-  const myBadge=`<span style="${mono};font-size:8px;font-weight:700;padding:2px 7px;border-radius:8px;background:${C.mint};color:#000;letter-spacing:.07em;flex-shrink:0">YOU</span>`;
+  const myBadge=`<span style="${mono};font-size:9px;font-weight:700;padding:3px 8px;border-radius:8px;background:${C.mint};color:#000;letter-spacing:.07em;flex-shrink:0">YOUR RESULT</span>`;
 
-  // Quadrant data — order: top-left, top-right, bottom-left, bottom-right (CSS grid flow)
-  const quads=[
-    {label:"LEFT NATIONALIST", sub:"Socialist republican", col:"#3cb371",
-     leans:["Left nationalist"],
-     desc:"State ownership, public investment, strong republican identity. Pro-unity, sceptical of multinational capital."},
-    {label:"RIGHT POPULIST",   sub:"Conservative nationalist", col:"#e07030",
-     leans:["Right populist","Conservative"],
-     desc:"Free market with traditional values and national identity. Sceptical of immigration and liberal institutions."},
-    {label:"HARD / CENTRE LEFT",sub:"Progressive socialist", col:C.uv,
-     leans:["Hard left","Centre left","Progressive"],
-     desc:"State intervention and redistribution combined with progressive social values, civil rights, and equality."},
-    {label:"LIBERAL / CENTRE RIGHT",sub:"Market liberal",    col:"#9c5ab4",
-     leans:["Liberal right","Centre right"],
-     desc:"Market economics with progressive or moderate social views. Low regulation, individual freedoms, pragmatic welfare."},
-  ];
-
-  // Spatial 3×3 layout — row 0=traditional(top), row 2=progressive(bottom); col 0=left, col 2=right
-  const spatialLeans=[
-    {row:0,col:0,lean:"Left nationalist", sub:"Socialist republican",col:"#3cb371",
-     desc:"Combines left-wing economics with republican nationalism. Pro-unity, pro-state investment, sceptical of multinational capital."},
-    {row:0,col:1,lean:"Conservative",     sub:"Traditional values",  col:"#c8963c",
-     desc:"Prioritises traditional values, community stability, and established institutions. Cautious about rapid social or cultural change."},
-    {row:0,col:2,lean:"Right populist",   sub:"Conservative nationalist",col:"#e07030",
-     desc:"Free market combined with cultural conservatism and national identity. Often sceptical of immigration and globalisation."},
-    {row:1,col:0,lean:"Centre left",      sub:"Social democrat",     col:"#4a90d9",
-     desc:"Mixed economy with strong public services and workers' rights. Accepts markets while pushing for greater equality."},
-    {row:1,col:2,lean:"Centre right",     sub:"Liberal conservative",col:"#5a8a5a",
-     desc:"Market-led growth, lower taxes, private enterprise. Broadly supports welfare state. Fianna Fáil / Fine Gael tradition."},
-    {row:2,col:0,lean:"Hard left",        sub:"Progressive socialist",col:C.uv,
-     desc:"Fundamental restructuring of the economy. Collective ownership, nationalisation, radical redistribution. Strong on civil rights."},
-    {row:2,col:1,lean:"Progressive",      sub:"Strong social liberal",col:C.mint,
-     desc:"Strongly prioritises civil rights, LGBTQ+ equality, secularism. Economic positions vary — social reform is the priority."},
-    {row:2,col:2,lean:"Liberal right",    sub:"Economically liberal, socially progressive",col:"#9c5ab4",
-     desc:"Free market with progressive social views. Low regulation, individual freedoms, open immigration, pro-European."},
-  ];
-
-  const spatialCard=(l)=>{
-    const mine=isMine(l.lean);
-    return`<div style="background:${mine?`rgba(60,255,208,.06)`:C.surface};border:1px solid ${mine?C.mint:C.border};border-radius:16px;padding:16px 18px">
-<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px;margin-bottom:8px">
-  <div style="display:flex;align-items:center;gap:7px;flex:1;min-width:0">
-    <span style="width:8px;height:8px;border-radius:50%;flex-shrink:0;background:${l.col};display:inline-block"></span>
-    <span style="${disp};font-size:clamp(15px,1.8vw,20px);color:${mine?C.mint:C.text1};letter-spacing:.04em;line-height:1">${l.lean.toUpperCase()}</span>
+  // Position card helper
+  const posCard=(lean,sub,col,desc)=>{
+    const mine=isMine(lean);
+    return`<div style="background:${mine?`rgba(60,255,208,.06)`:C.surface};border:1px solid ${mine?C.mint:C.border};border-radius:16px;padding:18px 20px">
+<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px">
+  <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:0">
+    <span style="width:9px;height:9px;border-radius:50%;flex-shrink:0;background:${col};display:inline-block;margin-top:2px"></span>
+    <span style="${disp};font-size:clamp(16px,2vw,22px);color:${mine?C.mint:C.text1};letter-spacing:.04em;line-height:1">${lean.toUpperCase()}</span>
   </div>
   ${mine?myBadge:""}
 </div>
-<div style="${mono};font-size:10px;color:${C.text3};letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px">${l.sub}</div>
-<p style="font-size:12px;color:${C.text2};line-height:1.6;margin:0">${l.desc}</p>
+<div style="${mono};font-size:10px;color:${C.text3};letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px">${sub}</div>
+<p style="font-size:13px;color:${C.text2};line-height:1.65;margin:0">${desc}</p>
 </div>`;
   };
 
-  // Centre cell: Centrist + Moderate stacked
-  const isCentrist=isMine("Centrist");const isMod=isMine("Moderate");
-  const centreCell=`<div style="display:flex;flex-direction:column;gap:8px">
-<div style="background:${isCentrist?`rgba(60,255,208,.06)`:C.surface};border:1px solid ${isCentrist?C.mint:C.border};border-radius:16px;padding:16px 18px">
-  <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px;margin-bottom:8px">
-    <div style="display:flex;align-items:center;gap:7px"><span style="width:8px;height:8px;border-radius:50%;flex-shrink:0;background:${C.text2};display:inline-block"></span><span style="${disp};font-size:clamp(15px,1.8vw,20px);color:${isCentrist?C.mint:C.text1};letter-spacing:.04em;line-height:1">CENTRIST</span></div>
-    ${isCentrist?myBadge:""}
+  // Row band helper
+  const band=(labelIcon,labelText,cols,cards)=>`
+<div style="margin-bottom:32px">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid ${C.border}">
+    <span style="${disp};font-size:28px;color:${C.text3};line-height:1">${labelIcon}</span>
+    <div>
+      <div style="${mono};font-size:11px;font-weight:700;color:${C.text2};letter-spacing:.1em;text-transform:uppercase">${labelText}</div>
+    </div>
   </div>
-  <div style="${mono};font-size:10px;color:${C.text3};letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px">Pragmatic moderate</div>
-  <p style="font-size:12px;color:${C.text2};line-height:1.6;margin:0">No strong ideological pattern. Pragmatic across issues — willing to take positions from both left and right.</p>
-</div>
-<div style="background:${isMod?`rgba(60,255,208,.06)`:C.surface2};border:1px solid ${isMod?C.mint:C.border};border-radius:16px;padding:14px 16px">
-  <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:6px">
-    <div style="display:flex;align-items:center;gap:7px"><span style="width:7px;height:7px;border-radius:50%;flex-shrink:0;background:${C.text3};display:inline-block"></span><span style="${disp};font-size:clamp(13px,1.6vw,17px);color:${isMod?C.mint:C.text2};letter-spacing:.04em;line-height:1">MODERATE</span></div>
-    ${isMod?myBadge:""}
-  </div>
-  <div style="${mono};font-size:10px;color:${C.text3};letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px">Mixed views across issues</div>
-  <p style="font-size:12px;color:${C.text3};line-height:1.6;margin:0">A balanced mix of views spanning the spectrum. Approaches policy case-by-case rather than through ideology.</p>
-</div>
+  <div style="display:grid;grid-template-columns:repeat(${cols},1fr);gap:12px">${cards}</div>
 </div>`;
 
-  // Build 3×3 grid cells in row-major order
-  let gridCells="";
-  for(let r=0;r<3;r++){
-    for(let c=0;c<3;c++){
-      if(r===1&&c===1){gridCells+=centreCell;}
-      else{const l=spatialLeans.find(x=>x.row===r&&x.col===c);gridCells+=l?spatialCard(l):`<div style="background:transparent"></div>`;}
-    }
-  }
+  const isCentrist=isMine("Centrist");const isMod=isMine("Moderate");
 
   $id("root").innerHTML=headerHTML()+`
 <div class="wrap" style="padding-bottom:80px">
 
-  <!-- BACK + TITLE -->
+  <!-- NAV -->
   <div style="padding:32px 0 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap">
     <button onclick="go(${hasResults?"'results'":"'intro'"})" style="${mono};font-size:11px;font-weight:700;padding:10px 20px;border-radius:24px;border:1px solid ${C.border};background:transparent;color:${C.text2};cursor:pointer;letter-spacing:.06em">← ${hasResults?"BACK TO RESULTS":"BACK TO HOME"}</button>
-    ${hasResults?`<div style="${mono};font-size:11px;color:${C.text3};letter-spacing:.08em;text-transform:uppercase">YOUR RESULT: <span style="color:${C.mint}">${myLean.toUpperCase()}</span></div>`:""}
+    ${hasResults?`<div style="${mono};font-size:11px;color:${C.text3};letter-spacing:.08em">YOUR RESULT: <span style="color:${C.mint}">${myLean.toUpperCase()}</span></div>`:""}
   </div>
-  <h1 style="${disp};font-size:clamp(40px,6vw,80px);line-height:.9;color:${C.text1};letter-spacing:.03em;margin-bottom:10px">UNDERSTANDING<br><span style="color:${C.mint}">YOUR RESULTS.</span></h1>
-  <p style="font-size:16px;color:${C.text2};line-height:1.7;max-width:640px;margin-bottom:40px">A guide to how the compass works, what the axes measure, and what each political position means in the Irish context.</p>
 
-  <!-- 2-COL: COMPASS LEFT, QUADRANT EXPLAINER RIGHT -->
-  <div style="${label};margin-bottom:8px">HOW THE COMPASS WORKS</div>
-  <p style="font-size:15px;color:${C.text2};line-height:1.75;max-width:680px;margin-bottom:24px">The compass maps two independent dimensions. The <strong style="color:${C.mint}">horizontal axis</strong> measures economic views (state vs market). The <strong style="color:${C.text2}">vertical axis</strong> measures social views (traditional vs progressive). Most political debate only discusses left vs right — this compass shows the full picture.</p>
+  <!-- TITLE -->
+  <h1 style="${disp};font-size:clamp(40px,6vw,80px);line-height:.9;color:${C.text1};letter-spacing:.03em;margin-bottom:12px">UNDERSTANDING<br><span style="color:${C.mint}">YOUR RESULTS.</span></h1>
+  <p style="font-size:16px;color:${C.text2};line-height:1.7;max-width:600px;margin-bottom:48px">A plain-English guide to how the compass works and what each political position means in Ireland.</p>
 
-  <div class="hero-grid" style="padding:0 0 40px;border-bottom:1px solid ${C.border};margin-bottom:40px;align-items:start">
-
-    <!-- LEFT COL: canvas + axis legend cards -->
-    <div>
-      <div style="${mono};font-size:10px;color:${C.text3};letter-spacing:.08em;margin-bottom:10px;text-transform:uppercase">ALL PARTY POSITIONS — REFERENCE</div>
-      <div style="background:${C.surface};border:1px solid ${C.border};border-radius:20px;padding:16px;margin-bottom:16px">
-        <canvas id="guide-compass" style="width:100%;display:block;border-radius:12px"></canvas>
+  <!-- ① THE TWO AXES -->
+  <div style="${label};margin-bottom:20px">① THE TWO AXES</div>
+  <p style="font-size:14px;color:${C.text2};line-height:1.7;max-width:640px;margin-bottom:20px">Most politics talks about left vs right, but the compass measures two separate things. You can be economically left and socially conservative, or economically right and socially progressive — the two axes are independent.</p>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:48px">
+    <div style="background:${C.surface};border:1px solid ${C.border};border-radius:20px;padding:24px">
+      <div style="${mono};font-size:10px;font-weight:700;letter-spacing:.12em;color:${C.mint};margin-bottom:16px">HORIZONTAL — ECONOMIC</div>
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+        <span style="${disp};font-size:20px;color:${C.mint}">← LEFT</span>
+        <div style="flex:1;height:3px;background:linear-gradient(to right,${C.mint}88,${C.border},${C.uv}88);border-radius:3px"></div>
+        <span style="${disp};font-size:20px;color:${C.uv}">RIGHT →</span>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-        <div style="background:${C.surface};border:1px solid ${C.border};border-left:3px solid ${C.mint};border-radius:12px;padding:14px">
-          <div style="${mono};font-size:10px;font-weight:700;color:${C.mint};letter-spacing:.08em;margin-bottom:6px">← ECONOMIC LEFT</div>
-          <p style="font-size:12px;color:${C.text3};line-height:1.6;margin:0">State ownership, high taxes on wealth, redistribution through public services.</p>
-        </div>
-        <div style="background:${C.surface};border:1px solid ${C.border};border-left:3px solid ${C.uv};border-radius:12px;padding:14px">
-          <div style="${mono};font-size:10px;font-weight:700;color:${C.uv};letter-spacing:.08em;margin-bottom:6px">ECONOMIC RIGHT →</div>
-          <p style="font-size:12px;color:${C.text3};line-height:1.6;margin:0">Free market, lower taxes, deregulation, private enterprise.</p>
-        </div>
-        <div style="background:${C.surface};border:1px solid ${C.border};border-left:3px solid ${C.text3};border-radius:12px;padding:14px">
-          <div style="${mono};font-size:10px;font-weight:700;color:${C.text2};letter-spacing:.08em;margin-bottom:6px">↑ TRADITIONAL</div>
-          <p style="font-size:12px;color:${C.text3};line-height:1.6;margin:0">National identity, cultural continuity, traditional values, caution about rapid social change.</p>
-        </div>
-        <div style="background:${C.surface};border:1px solid ${C.border};border-left:3px solid ${C.text3};border-radius:12px;padding:14px">
-          <div style="${mono};font-size:10px;font-weight:700;color:${C.text2};letter-spacing:.08em;margin-bottom:6px">PROGRESSIVE ↓</div>
-          <p style="font-size:12px;color:${C.text3};line-height:1.6;margin:0">Civil rights, LGBTQ+ equality, secularism, open immigration, individual freedoms.</p>
-        </div>
-      </div>
+      <p style="font-size:13px;color:${C.text3};line-height:1.65;margin:0 0 10px"><strong style="color:${C.mint}">Left:</strong> State ownership, public services, high taxes on wealth, redistribution.</p>
+      <p style="font-size:13px;color:${C.text3};line-height:1.65;margin:0"><strong style="color:${C.uv}">Right:</strong> Free market, private enterprise, lower taxes, less state intervention.</p>
     </div>
+    <div style="background:${C.surface};border:1px solid ${C.border};border-radius:20px;padding:24px">
+      <div style="${mono};font-size:10px;font-weight:700;letter-spacing:.12em;color:${C.text2};margin-bottom:16px">VERTICAL — SOCIAL</div>
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+        <span style="${disp};font-size:20px;color:${C.text2}">↑ TRAD.</span>
+        <div style="flex:1;height:3px;background:${C.border};border-radius:3px"></div>
+        <span style="${disp};font-size:20px;color:${C.text2}">PROG. ↓</span>
+      </div>
+      <p style="font-size:13px;color:${C.text3};line-height:1.65;margin:0 0 10px"><strong style="color:${C.text2}">Traditional:</strong> National identity, cultural continuity, caution about rapid social change.</p>
+      <p style="font-size:13px;color:${C.text3};line-height:1.65;margin:0"><strong style="color:${C.text2}">Progressive:</strong> Civil rights, LGBTQ+ equality, secularism, open immigration.</p>
+    </div>
+  </div>
 
-    <!-- RIGHT COL: quadrant explainer -->
-    <div>
-      <div style="${mono};font-size:10px;color:${C.text3};letter-spacing:.08em;margin-bottom:10px;text-transform:uppercase">THE FOUR QUADRANTS</div>
-      <div style="text-align:center;${mono};font-size:10px;color:${C.text3};letter-spacing:.08em;margin-bottom:6px">↑ TRADITIONAL / NATIONALIST</div>
-      <div style="display:flex;gap:4px;align-items:stretch">
-        <div style="${mono};font-size:9px;color:${C.text3};letter-spacing:.05em;writing-mode:vertical-rl;transform:rotate(180deg);padding:0 2px;display:flex;align-items:center;white-space:nowrap">← ECONOMIC LEFT</div>
-        <div style="flex:1;display:grid;grid-template-columns:1fr 1fr;gap:4px">
-          ${quads.map(q=>{const mine=q.leans.some(l=>isMine(l));return`<div style="background:${mine?`rgba(60,255,208,.06)`:C.surface};border:1px solid ${mine?C.mint:C.border};border-radius:12px;padding:16px">
-<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:8px">
-  <span style="width:7px;height:7px;border-radius:50%;flex-shrink:0;background:${q.col};display:inline-block"></span>
-  <span style="${mono};font-size:9px;font-weight:700;color:${q.col};letter-spacing:.08em;text-transform:uppercase;line-height:1.3">${q.label}</span>
-  ${mine?`<span style="${mono};font-size:8px;font-weight:700;padding:2px 6px;border-radius:6px;background:${C.mint};color:#000;letter-spacing:.06em">YOU</span>`:""}
+  <!-- ② THE COMPASS -->
+  <div style="${label};margin-bottom:12px">② THE COMPASS</div>
+  <p style="font-size:14px;color:${C.text2};line-height:1.7;max-width:640px;margin-bottom:16px">Each dot is one of the 20 Irish parties, plotted by their policy positions. Your dot appears once you answer questions.</p>
+  <div style="background:${C.surface};border:1px solid ${C.border};border-radius:20px;padding:16px;margin-bottom:8px">
+    <canvas id="guide-compass" style="width:100%;display:block;border-radius:12px"></canvas>
+  </div>
+  <div style="display:flex;justify-content:space-between;align-items:center;${mono};font-size:11px;color:${C.text3};letter-spacing:.07em;padding:0 4px;margin-bottom:48px">
+    <span>← ECONOMIC LEFT</span>
+    <span style="text-align:center">↑ TRAD. · · · PROG. ↓</span>
+    <span>ECONOMIC RIGHT →</span>
+  </div>
+
+  <!-- ③ THE FOUR QUADRANTS -->
+  <div style="${label};margin-bottom:12px">③ THE FOUR QUADRANTS</div>
+  <p style="font-size:14px;color:${C.text2};line-height:1.7;max-width:640px;margin-bottom:20px">The compass is divided into four regions. Where you land describes the broad political tradition you align with.</p>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;border-radius:20px;overflow:hidden;border:1px solid ${C.border};margin-bottom:12px">
+    ${[
+      {col:"#3cb371",leans:["Left nationalist"],label:"LEFT NATIONALIST",corner:"↖ TOP LEFT",desc:"Economic left + traditional/nationalist. Combines state ownership and public investment with a strong national or republican identity."},
+      {col:"#e07030",leans:["Right populist","Conservative"],label:"RIGHT POPULIST / CONSERVATIVE",corner:"↗ TOP RIGHT",desc:"Economic right + traditional/nationalist. Free market economics combined with cultural conservatism and national identity."},
+      {col:C.uv,leans:["Hard left","Centre left","Progressive"],label:"HARD LEFT / CENTRE LEFT",corner:"↙ BOTTOM LEFT",desc:"Economic left + progressive. State intervention and redistribution combined with civil rights, equality, and social liberalism."},
+      {col:"#9c5ab4",leans:["Liberal right","Centre right"],label:"LIBERAL / CENTRE RIGHT",corner:"↘ BOTTOM RIGHT",desc:"Economic right + progressive/moderate. Market economics combined with progressive or liberal social views."},
+    ].map(q=>{const mine=q.leans.some(l=>isMine(l));return`<div style="background:${mine?`rgba(60,255,208,.05)`:C.surface};border:1px solid ${mine?C.mint:"transparent"};padding:20px 22px">
+<div style="${mono};font-size:9px;color:${C.text3};letter-spacing:.06em;margin-bottom:8px">${q.corner}</div>
+<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+  <span style="width:8px;height:8px;border-radius:50%;flex-shrink:0;background:${q.col};display:inline-block"></span>
+  <span style="${mono};font-size:11px;font-weight:700;color:${q.col};letter-spacing:.07em;text-transform:uppercase">${q.label}</span>
+  ${mine?`<span style="${mono};font-size:8px;font-weight:700;padding:2px 7px;border-radius:8px;background:${C.mint};color:#000;letter-spacing:.06em">YOUR QUADRANT</span>`:""}
 </div>
-<p style="font-size:11px;color:${C.text2};line-height:1.55;margin:0 0 6px">${q.desc}</p>
-<div style="${mono};font-size:9px;color:${C.text3};letter-spacing:.05em">${q.leans.join(", ")}</div>
+<p style="font-size:13px;color:${C.text2};line-height:1.6;margin:0">${q.desc}</p>
 </div>`;}).join("")}
-        </div>
-        <div style="${mono};font-size:9px;color:${C.text3};letter-spacing:.05em;writing-mode:vertical-rl;padding:0 2px;display:flex;align-items:center;white-space:nowrap">ECONOMIC RIGHT →</div>
-      </div>
-      <div style="text-align:center;${mono};font-size:10px;color:${C.text3};letter-spacing:.08em;margin-top:6px;margin-bottom:16px">PROGRESSIVE / LIBERAL ↓</div>
-
-      <!-- Centrist callout -->
-      <div style="background:${C.surface};border:1px solid ${isCentrist||isMod?C.mint:C.border};border-radius:16px;padding:16px 20px">
-        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px">
-          <span style="${mono};font-size:10px;font-weight:700;color:${C.text2};letter-spacing:.08em">CENTRIST / MODERATE</span>
-          ${isCentrist||isMod?`<span style="${mono};font-size:8px;font-weight:700;padding:2px 8px;border-radius:8px;background:${C.mint};color:#000;letter-spacing:.06em">YOUR RESULT</span>`:""}
-        </div>
-        <p style="font-size:12px;color:${C.text3};line-height:1.65;margin:0">Falls near the centre of both axes. Not the same as having no views — reflects pragmatic, cross-spectrum positions without a dominant ideology on either axis.</p>
-      </div>
+  </div>
+  <div style="background:${C.surface};border:1px solid ${isCentrist||isMod?C.mint:C.border};border-radius:16px;padding:16px 20px;margin-bottom:48px">
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px">
+      <span style="${mono};font-size:11px;font-weight:700;color:${C.text2};letter-spacing:.07em">⊙ CENTRIST / MODERATE — THE CENTRE</span>
+      ${isCentrist||isMod?`<span style="${mono};font-size:8px;font-weight:700;padding:2px 8px;border-radius:8px;background:${C.mint};color:#000;letter-spacing:.06em">YOUR RESULT</span>`:""}
     </div>
-
+    <p style="font-size:13px;color:${C.text3};line-height:1.65;margin:0">Scores close to the middle on both axes. Not the same as having no views — reflects a pragmatic, cross-spectrum set of positions without a dominant ideology.</p>
   </div>
 
-  <!-- SPATIAL POSITIONS MAP -->
-  <div style="${label};margin-bottom:8px">POLITICAL POSITIONS — COMPASS MAP</div>
-  <p style="font-size:15px;color:${C.text2};line-height:1.7;max-width:640px;margin-bottom:20px">Each position is laid out to reflect where it sits on the compass — top rows are more traditional, bottom rows are more progressive; left columns are more economically left, right columns more market-oriented.</p>
+  <!-- ④ ALL POSITIONS BY LAYER -->
+  <div style="${label};margin-bottom:8px">④ ALL POSITIONS — BY LAYER</div>
+  <p style="font-size:14px;color:${C.text2};line-height:1.7;max-width:640px;margin-bottom:28px">Positions are grouped by where they sit on the social axis — top to bottom, from most traditional to most progressive. Within each row, left to right reflects the economic axis.</p>
 
-  <div style="margin-bottom:48px">
-    <div style="display:flex;justify-content:space-between;${mono};font-size:10px;color:${C.text3};letter-spacing:.08em;margin-bottom:6px">
-      <span>← ECONOMIC LEFT</span><span>ECONOMIC RIGHT →</span>
-    </div>
-    <div style="display:flex;gap:4px">
-      <div style="${mono};font-size:9px;color:${C.text3};writing-mode:vertical-rl;transform:rotate(180deg);letter-spacing:.05em;display:flex;align-items:center;padding:0 2px">
-        <span style="white-space:nowrap">↑ TRADITIONAL · · · PROGRESSIVE ↓</span>
-      </div>
-      <div style="flex:1;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
-        ${gridCells}
-      </div>
-    </div>
-    <div style="display:flex;justify-content:space-between;${mono};font-size:10px;color:${C.text3};letter-spacing:.08em;margin-top:6px">
-      <span>← LEFT</span><span>RIGHT →</span>
-    </div>
-  </div>
+  ${band("↑","TRADITIONAL & NATIONALIST — top of the compass",3,
+    posCard("Left nationalist","Socialist republican","#3cb371","Combines left-wing economics with a strong republican or national identity. Pro-unity, pro-state investment, sceptical of multinational capital. Rooted in the Irish republican tradition.")+
+    posCard("Conservative","Traditional values","#c8963c","Prioritises traditional social values, community stability, and established institutions. Cautious about rapid cultural or social change. Economic positions vary.")+
+    posCard("Right populist","Conservative nationalist","#e07030","Free market economics combined with cultural conservatism and national identity. Often sceptical of immigration, globalisation, and liberal institutions.")
+  )}
+
+  ${band("—","CENTRE — neither strongly traditional nor strongly progressive",3,
+    posCard("Centre left","Social democrat","#4a90d9","Supports a mixed economy with strong public services and workers' rights. Accepts market economics while pushing for greater equality. The dominant tradition of Irish centre-left politics.")+
+    (()=>{const mine=isCentrist||isMod;return`<div style="display:flex;flex-direction:column;gap:8px">
+${posCard("Centrist","Pragmatic moderate",C.text2,"No strong ideological pattern. Pragmatic across issues — willing to take positions from both left and right depending on the topic.")}
+${posCard("Moderate","Mixed views across issues",C.text3,"A balanced mix of views spanning the political spectrum. Approaches policy on a case-by-case basis rather than through a consistent ideology.")}</div>`;})()+
+    posCard("Centre right","Liberal conservative","#5a8a5a","Favours market-led growth, lower taxes, and private enterprise while broadly supporting the welfare state. The political tradition of Fianna Fáil and Fine Gael.")
+  )}
+
+  ${band("↓","PROGRESSIVE & LIBERAL — bottom of the compass",3,
+    posCard("Hard left","Progressive socialist",C.uv,"Believes the capitalist system must be fundamentally replaced. Favours collective ownership, nationalisation, and structural redistribution of wealth and power.")+
+    posCard("Progressive","Strong social liberal",C.mint,"Strongly prioritises civil rights, LGBTQ+ equality, and secularism. Economic positions may vary — this result reflects a dominant social rather than economic orientation.")+
+    posCard("Liberal right","Economically liberal, socially progressive","#9c5ab4","Free market economics with progressive social views. Low regulation, individual freedoms, open immigration, and pro-European integration.")
+  )}
 
   <!-- METHODOLOGY -->
   <div style="background:${C.surface};border:1px solid ${C.border};border-radius:20px;padding:24px 28px;margin-bottom:40px">
-    <div style="${label};margin-bottom:12px">A NOTE ON METHODOLOGY</div>
-    <p style="font-size:13px;color:${C.text2};line-height:1.75;margin:0 0 12px">Party positions are based on GE2024 manifestos, Oireachtas voting records, and published policy positions as of April 2026. No quiz can perfectly capture political alignment — this is a starting point for reflection, not a definitive classification.</p>
+    <div style="${label};margin-bottom:10px">A NOTE ON METHODOLOGY</div>
+    <p style="font-size:13px;color:${C.text2};line-height:1.75;margin:0 0 10px">Party positions are based on GE2024 manifestos, Oireachtas voting records, and published policy positions as of April 2026. No quiz can perfectly capture political alignment — this is a starting point for reflection, not a definitive classification.</p>
     <p style="font-size:13px;color:${C.text3};line-height:1.75;margin:0">The result categories are simplified summaries of complex political traditions. Real positions are nuanced and do not always fit neatly into any single label.</p>
   </div>
 
@@ -688,8 +642,8 @@ function renderGuide(){
     const cv=$id("guide-compass");
     if(cv){
       const w=cv.parentElement.offsetWidth-32;
-      cv.width=w;cv.height=Math.round(w*.72);
-      drawCompass("guide-compass",hasResults?axes:{},w,Math.round(w*.72));
+      cv.width=w;cv.height=Math.round(w*.65);
+      drawCompass("guide-compass",hasResults?axes:{},w,Math.round(w*.65));
     }
   });
 }
