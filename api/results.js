@@ -19,7 +19,11 @@ module.exports = async (req, res) => {
   try {
     redis = Redis.fromEnv();
   } catch (e) {
-    return res.status(500).json({ error: 'Redis not configured' });
+    // Return empty data so the toggle still renders without crashing
+    if (req.method === 'GET') {
+      return res.status(200).json({ total: 0, p1: {}, p2: {}, p3: {}, top3: [], topParty: null, _error: 'redis_not_configured' });
+    }
+    return res.status(503).json({ error: 'Redis not configured' });
   }
 
   if (req.method === 'POST') {

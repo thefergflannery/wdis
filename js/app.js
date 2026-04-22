@@ -183,15 +183,19 @@ window.toggleAverage=async()=>{
       const top=S.avgData.top3||[];const total=S.avgData.total||0;
       if(!stats){
         stats=document.createElement("div");stats.className="avg-stats";
-        stats.style.cssText=`display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding-top:10px;border-top:1px solid ${C.border}`;
+        stats.style.cssText=`margin-top:10px;padding-top:10px;border-top:1px solid ${C.border}`;
         const discEl=canvasWrap.querySelector(".avg-disc");
         canvasWrap.insertBefore(stats,discEl||null);
       }
-      const chips=top.map((t,i)=>{
-        const party=PARTIES.find(p=>p.abbr===t.abbr);
-        return`<span style="font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.06em;font-weight:700;color:${i===0?C.mint:C.text2}">#${i+1} ${t.abbr}${party?` <span style="font-weight:400;color:${C.text3};font-size:10px">${party.name}</span>`:""}</span>`;
-      }).join(`<span style="color:${C.border};margin:0 6px">·</span>`);
-      stats.innerHTML=`<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">${chips}</div><span style="font-family:'Space Mono',monospace;font-size:10px;color:${C.text3};letter-spacing:.06em;white-space:nowrap">${total.toLocaleString()} results</span>`;
+      if(total===0){
+        stats.innerHTML=`<p style="font-family:'Space Mono',monospace;font-size:10px;color:${C.text3};text-align:center;letter-spacing:.06em;margin:0">NO RESULTS YET — BE THE FIRST TO COMPLETE THE QUIZ</p>`;
+      } else {
+        const chips=top.map((t,i)=>{
+          const party=PARTIES.find(p=>p.abbr===t.abbr);
+          return`<span style="font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.06em;font-weight:700;color:${i===0?C.mint:C.text2}">#${i+1} ${t.abbr}${party?` <span style="font-weight:400;color:${C.text3};font-size:10px">${party.name}</span>`:""}</span>`;
+        }).join(`<span style="color:${C.border};margin:0 6px">·</span>`);
+        stats.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center"><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">${chips}</div><span style="font-family:'Space Mono',monospace;font-size:10px;color:${C.text3};letter-spacing:.06em;white-space:nowrap">${total.toLocaleString()} results</span></div>`;
+      }
     }else if(!S.showAverage&&stats)stats.remove();
   }
   const cv=$id("intro-compass");
