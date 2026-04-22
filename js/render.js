@@ -99,45 +99,65 @@ const SOURCE_META={
   'Newstalk':      {tag:'NEWSTALK',       bg:'#1a4fa0',fg:'#fff'},
 };
 
-async function loadNewsGrid(){
-  const box=document.getElementById('news-grid-dynamic');
-  if(!box)return;
-
-  let items=[];
-  try{
-    const r=await fetch('/api/news',{cache:'no-store'});
-    if(r.ok){const d=await r.json();items=d.items||[];}
-  }catch(e){/* fall through to static fallback */}
-
-  if(items.length>0){
-    const cards=items.slice(0,3).map(item=>{
-      const meta=SOURCE_META[item.source]||{tag:'NEWS',bg:C.border,fg:C.text1};
-      const _d=item.pubDate?new Date(item.pubDate):null;
-      const date=_d&&!isNaN(_d)?_d.toLocaleDateString('en-IE',{day:'numeric',month:'short',year:'numeric'}):'—';
-      // Validate link is http/https before using as href
-      let safeLink='#';
-      try{const u=new URL(item.link);if(u.protocol==='https:'||u.protocol==='http:')safeLink=item.link;}catch(e){}
-      return`<a href="${escHtml(safeLink)}" target="_blank" rel="noopener noreferrer" style="${sans};display:flex;flex-direction:column;gap:12px;background:${C.surface};border:1px solid ${C.border};border-radius:20px;padding:20px 22px;text-decoration:none;transition:border-color .2s" onmouseover="this.style.borderColor='${C.text3}'" onmouseout="this.style.borderColor='${C.border}'">
+function newsCardHTML(item){
+  const meta=SOURCE_META[item.source]||{tag:escHtml(item.source||'NEWS'),bg:C.border,fg:C.text1};
+  const _d=item.pubDate?new Date(item.pubDate):null;
+  const date=_d&&!isNaN(_d)?_d.toLocaleDateString('en-IE',{day:'numeric',month:'short',year:'numeric'}):'—';
+  let safeLink='#';
+  try{const u=new URL(item.link);if(u.protocol==='https:'||u.protocol==='http:')safeLink=item.link;}catch(e){}
+  return`<a href="${escHtml(safeLink)}" target="_blank" rel="noopener noreferrer" style="${sans};display:flex;flex-direction:column;gap:12px;background:${C.surface};border:1px solid ${C.border};border-radius:20px;padding:20px 22px;text-decoration:none;transition:border-color .2s" onmouseover="this.style.borderColor='${C.text3}'" onmouseout="this.style.borderColor='${C.border}'">
 <span style="${mono};font-size:10px;font-weight:700;padding:3px 10px;border-radius:6px;background:${meta.bg};color:${meta.fg};letter-spacing:.1em;align-self:flex-start">${escHtml(meta.tag)}</span>
 <p style="font-size:14px;font-weight:600;color:${C.text1};line-height:1.55;margin:0;flex:1">${escHtml(item.title)}</p>
 <div style="display:flex;justify-content:space-between;align-items:center">
 <span style="${mono};font-size:11px;color:${C.text3};letter-spacing:.06em">${escHtml(date)}</span>
 <span style="${mono};font-size:11px;color:${C.text3};letter-spacing:.06em">READ MORE →</span>
 </div></a>`;
-    });
-    box.innerHTML=cards.join('');
+}
+
+// Static fallback items derived from TICKS data
+function tickFallbackItems(){
+  const tagMap={'tick-live':{bg:'#ff3c3c',fg:'#fff'},'tick-pol':{bg:'#3cffd0',fg:'#000'},'tick-eco':{bg:'#f0a500',fg:'#000'}};
+  return TICKS.map(t=>{const tc=tagMap[t.cls]||{bg:C.border,fg:C.text1};return{title:t.text,link:t.url||'#',pubDate:'22 Apr 2026',source:'_static',_meta:{tag:t.tag,bg:tc.bg,fg:tc.fg}};});
+}
+
+async function loadNewsGrid(){
+  const box=document.getElementById('news-grid-dynamic');
+  if(!box)return;
+
+  let liveItems=[];
+  try{
+    const r=await fetch('/api/news',{cache:'no-store'});
+    if(r.ok){const d=await r.json();liveItems=d.items||[];}
+  }catch(e){/* fall through */}
+
+  // Pad to exactly 3 with static fallback items if live feed is short
+  const fallbacks=tickFallbackItems();
+  const combined=[...liveItems];
+  for(const f of fallbacks){
+    if(combined.length>=3)break;
+    combined.push(f);
+  }
+
+  const cards=combined.slice(0,3).map(item=>{
+    if(item._meta){
+      // Static fallback card — render inline with pre-computed meta
+      let safeLink='#';
+      try{const u=new URL(item.link);if(u.protocol==='https:'||u.protocol==='http:')safeLink=item.link;}catch(e){}
+      return`<a href="${escHtml(safeLink)}" target="_blank" rel="noopener noreferrer" style="${sans};display:flex;flex-direction:column;gap:12px;background:${C.surface};border:1px solid ${C.border};border-radius:20px;padding:20px 22px;text-decoration:none;transition:border-color .2s" onmouseover="this.style.borderColor='${C.text3}'" onmouseout="this.style.borderColor='${C.border}'">
+<span style="${mono};font-size:10px;font-weight:700;padding:3px 10px;border-radius:6px;background:${item._meta.bg};color:${item._meta.fg};letter-spacing:.1em;align-self:flex-start">${escHtml(item._meta.tag)}</span>
+<p style="font-size:14px;font-weight:600;color:${C.text1};line-height:1.55;margin:0;flex:1">${escHtml(item.title)}</p>
+<div style="display:flex;justify-content:space-between;align-items:center">
+<span style="${mono};font-size:11px;color:${C.text3};letter-spacing:.06em">${escHtml(item.pubDate)}</span>
+<span style="${mono};font-size:11px;color:${C.text3};letter-spacing:.06em">READ MORE →</span>
+</div></a>`;
+    }
+    return newsCardHTML(item);
+  });
+
+  box.innerHTML=cards.join('');
+  if(liveItems.length>0){
     const upd=document.getElementById('news-updated');
     if(upd)upd.textContent='Updated '+new Date().toLocaleTimeString('en-IE',{hour:'2-digit',minute:'2-digit'});
-  } else {
-    // Static fallback — TICKS data (no external content, safe)
-    const tagMap={'tick-live':{bg:'#ff3c3c',fg:'#fff'},'tick-pol':{bg:'#3cffd0',fg:'#000'},'tick-eco':{bg:'#f0a500',fg:'#000'}};
-    box.innerHTML=TICKS.slice(0,3).map(t=>{const tc=tagMap[t.cls]||{bg:C.border,fg:C.text1};return`<a href="${escHtml(t.url||'#')}" target="_blank" rel="noopener noreferrer" style="${sans};display:flex;flex-direction:column;gap:12px;background:${C.surface};border:1px solid ${C.border};border-radius:20px;padding:20px 22px;text-decoration:none">
-<span style="${mono};font-size:10px;font-weight:700;padding:3px 10px;border-radius:6px;background:${tc.bg};color:${tc.fg};letter-spacing:.1em;align-self:flex-start">${escHtml(t.tag)}</span>
-<p style="font-size:14px;font-weight:600;color:${C.text1};line-height:1.55;margin:0;flex:1">${escHtml(t.text)}</p>
-<div style="display:flex;justify-content:space-between;align-items:center">
-<span style="${mono};font-size:11px;color:${C.text3};letter-spacing:.06em">22 Apr 2026</span>
-<span style="${mono};font-size:11px;color:${C.text3};letter-spacing:.06em">READ MORE →</span>
-</div></a>`;}).join('');
   }
 }
 
@@ -151,15 +171,29 @@ function legendHTML(){
 </div></div>`).join("")}</div>`;
 }
 
-function headerHTML(){
+function headerHTML(quizDone, quizTotal){
+  const inQuiz = quizTotal > 0;
+  const pct = inQuiz ? Math.round((quizDone/quizTotal)*100) : 0;
+  const progressPill = inQuiz ? `
+<div style="display:flex;align-items:center;gap:10px;flex-shrink:0">
+  <span style="${mono};font-size:11px;color:${C.text3};letter-spacing:.06em;white-space:nowrap">${quizDone}<span style="color:${C.text3};opacity:.5"> / ${quizTotal}</span></span>
+  <div style="width:80px;height:4px;background:${C.border};border-radius:4px;overflow:hidden;flex-shrink:0">
+    <div id="nav-pbar" style="height:100%;background:${C.mint};border-radius:4px;width:${pct}%;transition:width .3s ease"></div>
+  </div>
+  <span style="${mono};font-size:11px;color:${C.mint};letter-spacing:.06em;width:32px;text-align:right">${pct}%</span>
+</div>` : '';
   return`<div style="position:sticky;top:0;z-index:50;background:${C.canvas}">
 <div class="tick-bar">
 <span class="tick-tag tick-live" id="tick-tag">LIVE</span>
 <span class="tick-text" id="tick-text" style="font-size:12px;color:#000;font-weight:600;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><a id="tick-link" href="#" target="_blank" rel="noopener" style="color:inherit;text-decoration:none">Loading...</a></span>
 <span style="${mono};font-size:12px;color:rgba(0,0,0,0.55);flex-shrink:0;letter-spacing:.08em;white-space:nowrap">22 APR 2026</span>
 </div>
-<nav class="site-nav">
-<button onclick="go('intro')" style="${disp};font-size:24px;color:${C.text1};background:none;border:none;cursor:pointer;letter-spacing:.06em;padding:0;line-height:1">TILT<span style="color:${C.mint}">.</span></button>
+<nav class="site-nav" style="justify-content:space-between">
+  <div style="display:flex;align-items:baseline;gap:14px;min-width:0;overflow:hidden">
+    <button onclick="go('intro')" style="${disp};font-size:24px;color:${C.text1};background:none;border:none;cursor:pointer;letter-spacing:.06em;padding:0;line-height:1;flex-shrink:0">TILT<span style="color:${C.mint}">.</span></button>
+    <span style="${mono};font-size:11px;color:${C.text3};letter-spacing:.1em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" class="nav-byline">WHERE DO I CURRENTLY STAND?</span>
+  </div>
+  ${progressPill}
 </nav>
 </div>`;
 }
@@ -215,18 +249,18 @@ function renderIntro(){
       <h1 class="hero-wordmark" style="${disp};font-size:clamp(72px,9vw,120px);line-height:.88;letter-spacing:.02em;color:${C.text1};margin-bottom:16px">TILT<span style="color:${C.mint}">.</span></h1>
       <p style="${mono};font-size:14px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:${C.text2};margin-bottom:10px">WHERE DO I CURRENTLY STAND?</p>
       <p style="font-size:16px;color:${C.text2};line-height:1.6;margin-bottom:12px">A guide to your political leaning in Ireland.</p>
-      <div style="background:${C.surface};border:1px solid ${C.border};border-radius:12px;padding:12px 16px;margin-bottom:32px;font-size:13px;color:${C.text3};line-height:1.6">
+      <div style="background:${C.surface};border:1px solid ${C.mint};border-radius:12px;padding:12px 16px;margin-bottom:32px;font-size:13px;color:${C.text2};line-height:1.6">
         Not politically affiliated. Built to help you cut through the noise and map your own views against the policies parties actually stand for.
       </div>
       <div style="display:flex;gap:12px;flex-wrap:wrap">
         <button onclick="startQuiz('quick')" style="flex:1;min-width:150px;background:${C.surface};border:1px solid ${C.border};border-radius:24px;padding:16px 24px;text-align:left;cursor:pointer;transition:all .15s" onmouseover="this.style.borderColor='${C.mint}'" onmouseout="this.style.borderColor='${C.border}'">
           <div style="${disp};font-size:24px;color:${C.text1};letter-spacing:.04em;margin-bottom:4px">QUICK</div>
-          <div style="${mono};font-size:11px;color:${C.text2};letter-spacing:.08em;margin-bottom:6px">10 QUESTIONS · ~3 MIN</div>
+          <div style="${mono};font-size:11px;color:${C.text2};letter-spacing:.08em;margin-bottom:6px">18 QUESTIONS · ~5 MIN</div>
           <div style="font-size:12px;color:${C.text3}">One question per topic</div>
         </button>
         <button onclick="startQuiz('full')" style="flex:1;min-width:150px;background:${C.mint};border:1px solid ${C.mint};border-radius:24px;padding:16px 24px;text-align:left;cursor:pointer;transition:all .15s" onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'">
           <div style="${disp};font-size:24px;color:#000;letter-spacing:.04em;margin-bottom:4px">FULL</div>
-          <div style="${mono};font-size:11px;color:rgba(0,0,0,.7);letter-spacing:.08em;margin-bottom:6px">56 QUESTIONS · ~15 MIN</div>
+          <div style="${mono};font-size:11px;color:rgba(0,0,0,.7);letter-spacing:.08em;margin-bottom:6px">72 QUESTIONS · ~20 MIN</div>
           <div style="font-size:12px;color:rgba(0,0,0,.6)">All topics — most accurate</div>
         </button>
       </div>
@@ -284,13 +318,6 @@ function renderIntro(){
     ${newsGridHTML()}
   </div>
 
-  <!-- TOPIC PILLS -->
-  <div style="padding-bottom:64px">
-    <div style="${label};margin-bottom:16px">TOPICS COVERED — ${CATS.length} CATEGORIES</div>
-    <div style="display:flex;flex-wrap:wrap;gap:8px">
-      ${CATS.map(c=>`<span style="${mono};font-size:12px;padding:5px 12px;border-radius:20px;border:1px solid ${C.border};color:${C.text3};letter-spacing:.06em;text-transform:uppercase">${c}</span>`).join("")}
-    </div>
-  </div>
   ${footerHTML()}
 </div>`;
   applyTheme();startTicker();
@@ -357,7 +384,7 @@ function renderQuiz(){
 <div id="party-list-box">${sidePartyListHTML(scored,hasAny)}</div>
 </div>`;
 
-  $id("root").innerHTML=headerHTML()+
+  $id("root").innerHTML=headerHTML(done,qs.length)+
 `<div style="height:2px;background:${C.border}"><div id="pbar" style="height:100%;background:${C.mint};width:${Math.round((done/qs.length)*100)}%"></div></div>
 <div class="wrap">
 <div class="cat-tabs" style="border-bottom:1px solid ${C.border};margin-bottom:24px">${catBtns}</div>

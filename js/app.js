@@ -117,8 +117,22 @@ window.setAns=(id,v)=>{
   }
   // Update FAB count
   const answeredCount=Object.keys(S.answers).length;
-  const fc=$id("mobile-fab-count");if(fc)fc.textContent=`${answeredCount}/${activeQS().length}`;
-  const pb=$id("pbar");if(pb)pb.style.width=Math.round((answeredCount/activeQS().length)*100)+"%";
+  const totalQ=activeQS().length;
+  const pct=Math.round((answeredCount/totalQ)*100);
+  const fc=$id("mobile-fab-count");if(fc)fc.textContent=`${answeredCount}/${totalQ}`;
+  const pb=$id("pbar");if(pb)pb.style.width=pct+"%";
+  const npb=$id("nav-pbar");if(npb)npb.style.width=pct+"%";
+  const navPct=npb?npb.closest("nav")?.querySelector(".nav-pct"):null;
+  // Update nav pill text nodes directly
+  const navPill=$id("nav-pbar");
+  if(navPill){
+    const pillRow=navPill.parentElement?.parentElement;
+    if(pillRow){
+      const spans=pillRow.querySelectorAll("span");
+      if(spans[0])spans[0].innerHTML=`${answeredCount}<span style="opacity:.5"> / ${totalQ}</span>`;
+      if(spans[1])spans[1].textContent=pct+"%";
+    }
+  }
   const catQs=activeQS().filter(q=>q.cat===activeCATS()[S.cat]);
   const catDone=catQs.every(q=>S.answers[q.id]!==undefined);
   const btn=$id("next-btn");
