@@ -1,4 +1,4 @@
-let S={phase:"intro",cat:0,answers:{},dark:true,showMinor:true,mode:"full",shuffledQS:null,shuffledCATS:null,hideCompass:false,showAverage:false};
+let S={phase:"intro",cat:0,answers:{},dark:true,showMinor:true,mode:"full",shuffledQS:null,shuffledCATS:null,hideCompass:false,showAverage:false,mobileCompassOpen:false};
 
 function shuffle(arr){
   const a=[...arr];
@@ -145,28 +145,50 @@ window.hideResultsSheet=()=>{
   document.body.style.overflow="";
 };
 window.themeToggle=()=>{S.dark=!S.dark;applyTheme();const axes=computeAxes(S.answers);if(!S.hideCompass)drawCompass("compass-canvas",axes);};
+window.toggleMobileCompass=()=>{
+  S.mobileCompassOpen=!S.mobileCompassOpen;
+  const panel=$id("mobile-compass-panel");
+  const arrow=$id("mobile-compass-arrow");
+  const mbtn=$id("mobile-compass-btn");
+  if(!panel)return;
+  panel.style.display=S.mobileCompassOpen?"block":"none";
+  if(arrow)arrow.style.transform=S.mobileCompassOpen?"rotate(180deg)":"rotate(0deg)";
+  if(mbtn)mbtn.style.borderColor=S.mobileCompassOpen?C.mint:C.border;
+  if(S.mobileCompassOpen){
+    requestAnimationFrame(()=>{
+      const cv=$id("intro-compass-mobile");
+      if(cv){
+        const w=cv.parentElement.offsetWidth-32;
+        cv.width=w;cv.height=Math.round(w*.7);
+        const avgPos=S.showAverage&&S.avgData?computeAvgPos(S.avgData.p1):null;
+        drawCompass("intro-compass-mobile",{},w,Math.round(w*.7),avgPos);
+      }
+      if(S.showAverage){
+        const b=$id("avg-toggle-btn-mobile");
+        if(b){b.style.borderColor=C.mint;b.style.color=C.mint;b.style.background='rgba(60,255,208,.08)';}
+      }
+    });
+  }
+};
 window.toggleAverage=async()=>{
   S.showAverage=!S.showAverage;
   const btn=$id("avg-toggle-btn");
+  const btnM=$id("avg-toggle-btn-mobile");
   if(S.showAverage&&!S.avgData){
-    if(btn){btn.textContent="LOADING…";btn.style.opacity=".6";}
+    [btn,btnM].forEach(b=>{if(b){b.textContent="LOADING…";b.style.opacity=".6";}});
     try{
       const r=await fetch("/api/results");
       if(r.ok)S.avgData=await r.json();
       else S.showAverage=false;
     }catch(e){S.showAverage=false;}
-    if(btn)btn.style.opacity="1";
+    [btn,btnM].forEach(b=>{if(b)b.style.opacity="1";});
     if(!S.showAverage){
-      if(btn){btn.textContent="OVERALL AVERAGE ✦";}
+      [btn,btnM].forEach(b=>{if(b)b.textContent="OVERALL AVERAGE ✦";});
       return;
     }
   }
-  if(btn){
-    btn.textContent=S.showAverage?"HIDE AVG ✦":"OVERALL AVERAGE ✦";
-    btn.style.borderColor=S.showAverage?C.mint:C.border;
-    btn.style.color=S.showAverage?C.mint:C.text3;
-    btn.style.background=S.showAverage?"rgba(60,255,208,.08)":"transparent";
-  }
+  const avgBtnStyle=(b)=>{if(!b)return;b.textContent=S.showAverage?"HIDE AVG ✦":"OVERALL AVERAGE ✦";b.style.borderColor=S.showAverage?C.mint:C.border;b.style.color=S.showAverage?C.mint:C.text3;b.style.background=S.showAverage?"rgba(60,255,208,.08)":"transparent";};
+  avgBtnStyle(btn);avgBtnStyle(btnM);
   const canvasWrap=$id("intro-compass")?.parentElement;
   if(canvasWrap){
     // Disclaimer
@@ -198,12 +220,11 @@ window.toggleAverage=async()=>{
       }
     }else if(!S.showAverage&&stats)stats.remove();
   }
+  const avgPos=S.showAverage&&S.avgData?computeAvgPos(S.avgData.p1):null;
   const cv=$id("intro-compass");
-  if(cv){
-    const w=cv.parentElement.offsetWidth-32;
-    const avgPos=S.showAverage&&S.avgData?computeAvgPos(S.avgData.p1):null;
-    drawCompass("intro-compass",{},w,Math.round(w*.7),avgPos);
-  }
+  if(cv){const w=cv.parentElement.offsetWidth-32;drawCompass("intro-compass",{},w,Math.round(w*.7),avgPos);}
+  const cvm=$id("intro-compass-mobile");
+  if(cvm&&S.mobileCompassOpen){const w=cvm.parentElement.offsetWidth-32;drawCompass("intro-compass-mobile",{},w,Math.round(w*.7),avgPos);}
 };
 window.toggleCompass=()=>{
   S.hideCompass=!S.hideCompass;

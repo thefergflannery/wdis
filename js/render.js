@@ -123,8 +123,10 @@ async function loadNewsGrid(){
     box.innerHTML=TICKS.slice(0,3).map(t=>{const tc=tagMap[t.cls]||{bg:C.border,fg:C.text1};return`<a href="${t.url||'#'}" target="_blank" rel="noopener" style="${sans};display:flex;flex-direction:column;gap:12px;background:${C.surface};border:1px solid ${C.border};border-radius:20px;padding:20px 22px;text-decoration:none" >
 <span style="${mono};font-size:10px;font-weight:700;padding:3px 10px;border-radius:6px;background:${tc.bg};color:${tc.fg};letter-spacing:.1em;align-self:flex-start">${t.tag}</span>
 <p style="font-size:14px;font-weight:600;color:${C.text1};line-height:1.55;margin:0;flex:1">${t.text}</p>
+<div style="display:flex;justify-content:space-between;align-items:center">
+<span style="${mono};font-size:11px;color:${C.text3};letter-spacing:.06em">22 Apr 2026</span>
 <span style="${mono};font-size:11px;color:${C.text3};letter-spacing:.06em">READ MORE →</span>
-</a>`;}).join('');
+</div></a>`;}).join('');
   }
 }
 
@@ -217,6 +219,13 @@ function renderIntro(){
           <div style="font-size:12px;color:rgba(0,0,0,.6)">All topics — most accurate</div>
         </button>
       </div>
+      <!-- Mobile-only compass toggle button -->
+      <div class="show-mobile" style="display:none;margin-top:16px">
+        <button onclick="toggleMobileCompass()" id="mobile-compass-btn" style="${mono};font-size:11px;font-weight:700;width:100%;padding:12px 20px;border-radius:24px;border:1px solid ${C.border};background:transparent;color:${C.text2};cursor:pointer;letter-spacing:.06em;text-transform:uppercase;display:flex;align-items:center;justify-content:space-between;transition:border-color .15s">
+          <span>VIEW PARTY COMPASS</span>
+          <span id="mobile-compass-arrow" style="transition:transform .25s;display:inline-block">▾</span>
+        </button>
+      </div>
     </div>
     <div class="hero-compass-col">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
@@ -228,6 +237,18 @@ function renderIntro(){
         <div style="${mono};font-size:12px;color:${C.mint};text-align:center;margin-top:10px;letter-spacing:.08em">START ANSWERING TO SEE YOUR POSITION</div>
         ${S.showAverage?`<p style="${mono};font-size:10px;color:${C.text3};text-align:center;margin-top:8px;line-height:1.6;letter-spacing:.04em">* This is the average result over time. Data only correlates to final results. NO PERSONAL DATA is stored.</p>`:''}
       </div>
+    </div>
+  </div>
+
+  <!-- Mobile compass panel (hidden by default, toggled by button) -->
+  <div id="mobile-compass-panel" style="display:none;padding:16px 0 24px;border-bottom:1px solid ${C.border}">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <span style="${label}">PARTY POSITIONS PREVIEW</span>
+      <button id="avg-toggle-btn-mobile" onclick="toggleAverage()" style="${mono};font-size:10px;font-weight:700;padding:4px 12px;border-radius:20px;border:1px solid ${C.border};background:transparent;color:${C.text3};cursor:pointer;letter-spacing:.06em;text-transform:uppercase;transition:all .15s">${S.showAverage?'HIDE AVG':'OVERALL AVERAGE ✦'}</button>
+    </div>
+    <div id="mobile-compass-wrap" style="background:${C.surface};border:1px solid ${C.border};border-radius:20px;padding:16px">
+      <canvas id="intro-compass-mobile" style="width:100%;display:block;border-radius:12px"></canvas>
+      <div style="${mono};font-size:12px;color:${C.mint};text-align:center;margin-top:10px;letter-spacing:.08em">START ANSWERING TO SEE YOUR POSITION</div>
     </div>
   </div>
 
