@@ -257,6 +257,17 @@ function renderIntro(){
     ${legendHTML()}
   </div>
 
+  <!-- UNDERSTANDING THE RESULTS -->
+  <div style="padding:32px 0;border-top:1px solid ${C.border}">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap">
+      <div>
+        <div style="${label};margin-bottom:8px">UNDERSTANDING THE RESULTS</div>
+        <p style="font-size:14px;color:${C.text2};line-height:1.65;max-width:560px;margin:0">What does the compass measure? What does Centre Left, Hard Left, or Centrist actually mean? A plain-English guide to reading your results.</p>
+      </div>
+      <button onclick="go('guide')" style="${mono};font-size:11px;font-weight:700;padding:12px 24px;border-radius:24px;border:1px solid ${C.mint};background:rgba(60,255,208,.06);color:${C.mint};cursor:pointer;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;transition:all .15s;flex-shrink:0">READ THE GUIDE →</button>
+    </div>
+  </div>
+
   <!-- NEWS GRID -->
   <div style="padding-top:16px">
     ${newsGridHTML()}
