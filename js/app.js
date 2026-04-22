@@ -279,6 +279,7 @@ window.toggleMinor=()=>{
 function render(){
   if(S.phase==="intro")renderIntro();
   else if(S.phase==="quiz")renderQuiz();
+  else if(S.phase==="guide")renderGuide();
   else renderResults();
 }
 
