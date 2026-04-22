@@ -1,0 +1,15 @@
+# Vercel — project config links to account (never commit)
+.vercel/
+
+# macOS
+.DS_Store
+**/.DS_Store
+
+# Node
+node_modules/
+npm-debug.log*
+
+# Environment secrets
+.env
+.env.local
+.env.*.local

@@ -9,8 +9,40 @@ const ALLOWED = new Set([
   '100R','WP','R2C','WUA','KIA','Rab','NP','DDI','PAW','I4C',
 ]);
 
+const ALLOWED_ORIGINS = new Set([
+  'https://wdisf-ferg-flannerys-projects.vercel.app',
+  'https://tilt.ferg.ie',
+  'https://tilt.fergflannery.com',
+  'http://localhost:3000',
+  'http://127.0.0.1:5500',
+  'http://localhost:5500',
+]);
+
+// In-memory rate limiter — resets on cold start, good enough for serverless
+// Key: IP, Value: { count, windowStart }
+const rateLimits = new Map();
+const RATE_WINDOW_MS = 60 * 60 * 1000; // 1 hour
+const RATE_MAX_POST = 5; // max 5 submissions per IP per hour
+
+function checkRateLimit(ip) {
+  const now = Date.now();
+  const record = rateLimits.get(ip);
+  if (!record || now - record.windowStart > RATE_WINDOW_MS) {
+    rateLimits.set(ip, { count: 1, windowStart: now });
+    return true;
+  }
+  if (record.count >= RATE_MAX_POST) return false;
+  record.count++;
+  return true;
+}
+
 module.exports = async (req, res) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  // CORS — only allow known origins
+  const origin = req.headers.origin || '';
+  if (ALLOWED_ORIGINS.has(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Vary', 'Origin');
+  }
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(200).end();
@@ -27,6 +59,17 @@ module.exports = async (req, res) => {
   }
 
   if (req.method === 'POST') {
+    // Payload size guard (body is already parsed by Vercel, check raw size)
+    const bodyStr = JSON.stringify(req.body || {});
+    if (bodyStr.length > 512) return res.status(413).json({ error: 'Payload too large' });
+
+    // Rate limit by IP
+    const ip = (req.headers['x-forwarded-for'] || req.socket?.remoteAddress || 'unknown')
+      .split(',')[0].trim();
+    if (!checkRateLimit(ip)) {
+      return res.status(429).json({ error: 'Rate limit exceeded. Try again later.' });
+    }
+
     const body = req.body || {};
     const r1 = String(body.result1 || '').trim();
     const r2 = String(body.result2 || '').trim();

@@ -87,43 +87,51 @@ function newsGridHTML(){
 <div class="news-grid" id="news-grid-dynamic">${skeleton}${skeleton}${skeleton}</div>`;
 }
 
+function escHtml(s){
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+const SOURCE_META={
+  'RTÉ News':{tag:'IRELAND',bg:'#ff3c3c',fg:'#fff'},
+  'RTÉ Politics':{tag:'POLITICS',bg:'#3cffd0',fg:'#000'},
+  'The Journal':{tag:'NEWS',bg:'#f0a500',fg:'#000'},
+};
+
 async function loadNewsGrid(){
-  const sources=[
-    {url:'https://www.rte.ie/news/rss/news-politics.xml',tag:'POLITICS',bg:'#3cffd0',fg:'#000'},
-    {url:'https://www.rte.ie/news/rss/news-ireland.xml',tag:'IRELAND',bg:'#ff3c3c',fg:'#fff'},
-    {url:'https://www.thejournal.ie/feed/',tag:'NEWS',bg:'#f0a500',fg:'#000'},
-  ];
-  const proxy='https://api.rss2json.com/v1/api.json?count=1&rss_url=';
-  const results=await Promise.allSettled(
-    sources.map(s=>fetch(proxy+encodeURIComponent(s.url),{cache:'no-store'})
-      .then(r=>r.json()).then(d=>({...s,item:d.items?.[0]})))
-  );
-  const cards=results
-    .filter(r=>r.status==='fulfilled'&&r.value.item)
-    .map(r=>{
-      const{tag,bg,fg,item}=r.value;
+  const box=document.getElementById('news-grid-dynamic');
+  if(!box)return;
+
+  let items=[];
+  try{
+    const r=await fetch('/api/news',{cache:'no-store'});
+    if(r.ok){const d=await r.json();items=d.items||[];}
+  }catch(e){/* fall through to static fallback */}
+
+  if(items.length>0){
+    const cards=items.slice(0,3).map(item=>{
+      const meta=SOURCE_META[item.source]||{tag:'NEWS',bg:C.border,fg:C.text1};
       const _d=item.pubDate?new Date(item.pubDate):null;
       const date=_d&&!isNaN(_d)?_d.toLocaleDateString('en-IE',{day:'numeric',month:'short',year:'numeric'}):'—';
-      return`<a href="${item.link}" target="_blank" rel="noopener" style="${sans};display:flex;flex-direction:column;gap:12px;background:${C.surface};border:1px solid ${C.border};border-radius:20px;padding:20px 22px;text-decoration:none;transition:border-color .2s" onmouseover="this.style.borderColor='${C.text3}'" onmouseout="this.style.borderColor='${C.border}'">
-<span style="${mono};font-size:10px;font-weight:700;padding:3px 10px;border-radius:6px;background:${bg};color:${fg};letter-spacing:.1em;align-self:flex-start">${tag}</span>
-<p style="font-size:14px;font-weight:600;color:${C.text1};line-height:1.55;margin:0;flex:1">${item.title}</p>
+      // Validate link is http/https before using as href
+      let safeLink='#';
+      try{const u=new URL(item.link);if(u.protocol==='https:'||u.protocol==='http:')safeLink=item.link;}catch(e){}
+      return`<a href="${escHtml(safeLink)}" target="_blank" rel="noopener noreferrer" style="${sans};display:flex;flex-direction:column;gap:12px;background:${C.surface};border:1px solid ${C.border};border-radius:20px;padding:20px 22px;text-decoration:none;transition:border-color .2s" onmouseover="this.style.borderColor='${C.text3}'" onmouseout="this.style.borderColor='${C.border}'">
+<span style="${mono};font-size:10px;font-weight:700;padding:3px 10px;border-radius:6px;background:${meta.bg};color:${meta.fg};letter-spacing:.1em;align-self:flex-start">${escHtml(meta.tag)}</span>
+<p style="font-size:14px;font-weight:600;color:${C.text1};line-height:1.55;margin:0;flex:1">${escHtml(item.title)}</p>
 <div style="display:flex;justify-content:space-between;align-items:center">
-<span style="${mono};font-size:11px;color:${C.text3};letter-spacing:.06em">${date}</span>
+<span style="${mono};font-size:11px;color:${C.text3};letter-spacing:.06em">${escHtml(date)}</span>
 <span style="${mono};font-size:11px;color:${C.text3};letter-spacing:.06em">READ MORE →</span>
 </div></a>`;
     });
-  const box=document.getElementById('news-grid-dynamic');
-  if(!box)return;
-  if(cards.length>0){
     box.innerHTML=cards.join('');
     const upd=document.getElementById('news-updated');
     if(upd)upd.textContent='Updated '+new Date().toLocaleTimeString('en-IE',{hour:'2-digit',minute:'2-digit'});
   } else {
-    // fallback to static TICKS data
+    // Static fallback — TICKS data (no external content, safe)
     const tagMap={'tick-live':{bg:'#ff3c3c',fg:'#fff'},'tick-pol':{bg:'#3cffd0',fg:'#000'},'tick-eco':{bg:'#f0a500',fg:'#000'}};
-    box.innerHTML=TICKS.slice(0,3).map(t=>{const tc=tagMap[t.cls]||{bg:C.border,fg:C.text1};return`<a href="${t.url||'#'}" target="_blank" rel="noopener" style="${sans};display:flex;flex-direction:column;gap:12px;background:${C.surface};border:1px solid ${C.border};border-radius:20px;padding:20px 22px;text-decoration:none" >
-<span style="${mono};font-size:10px;font-weight:700;padding:3px 10px;border-radius:6px;background:${tc.bg};color:${tc.fg};letter-spacing:.1em;align-self:flex-start">${t.tag}</span>
-<p style="font-size:14px;font-weight:600;color:${C.text1};line-height:1.55;margin:0;flex:1">${t.text}</p>
+    box.innerHTML=TICKS.slice(0,3).map(t=>{const tc=tagMap[t.cls]||{bg:C.border,fg:C.text1};return`<a href="${escHtml(t.url||'#')}" target="_blank" rel="noopener noreferrer" style="${sans};display:flex;flex-direction:column;gap:12px;background:${C.surface};border:1px solid ${C.border};border-radius:20px;padding:20px 22px;text-decoration:none">
+<span style="${mono};font-size:10px;font-weight:700;padding:3px 10px;border-radius:6px;background:${tc.bg};color:${tc.fg};letter-spacing:.1em;align-self:flex-start">${escHtml(t.tag)}</span>
+<p style="font-size:14px;font-weight:600;color:${C.text1};line-height:1.55;margin:0;flex:1">${escHtml(t.text)}</p>
 <div style="display:flex;justify-content:space-between;align-items:center">
 <span style="${mono};font-size:11px;color:${C.text3};letter-spacing:.06em">22 Apr 2026</span>
 <span style="${mono};font-size:11px;color:${C.text3};letter-spacing:.06em">READ MORE →</span>
