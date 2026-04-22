@@ -37,7 +37,7 @@ ${i===0?`<span style="${mono};font-size:11px;padding:2px 10px;border-radius:20px
 <div style="height:2px;background:${C.border};border-radius:2px;overflow:hidden;margin-bottom:12px">
 <div style="height:100%;border-radius:2px;background:${p.col};width:${p.match}%;transition:width .7s ease"></div>
 </div>
-<p style="font-size:13px;color:${C.text2};line-height:1.6;margin:0">${p.desc}</p>
+<p style="font-size:14px;color:${C.text2};line-height:1.6;margin:0">${p.desc}</p>
 </div>`).join("");
 }
 
@@ -105,7 +105,7 @@ function newsCardHTML(item){
   const date=_d&&!isNaN(_d)?_d.toLocaleDateString('en-IE',{day:'numeric',month:'short',year:'numeric'}):'—';
   let safeLink='#';
   try{const u=new URL(item.link);if(u.protocol==='https:'||u.protocol==='http:')safeLink=item.link;}catch(e){}
-  return`<a href="${escHtml(safeLink)}" target="_blank" rel="noopener noreferrer" style="${sans};display:flex;flex-direction:column;gap:12px;background:${C.surface};border:1px solid ${C.border};border-radius:20px;padding:20px 22px;text-decoration:none;transition:border-color .2s" onmouseover="this.style.borderColor='${C.text3}'" onmouseout="this.style.borderColor='${C.border}'">
+  return`<a href="${escHtml(safeLink)}" target="_blank" rel="noopener noreferrer" style="${sans};display:flex;flex-direction:column;gap:12px;background:${C.surface};border:1px solid ${C.border};border-top:3px solid ${meta.bg};border-radius:20px;padding:20px 22px;text-decoration:none;transition:border-color .2s" onmouseover="this.style.borderColor='${C.text3}';this.style.borderTopColor='${meta.bg}'" onmouseout="this.style.borderColor='${C.border}';this.style.borderTopColor='${meta.bg}'">
 <span style="${mono};font-size:10px;font-weight:700;padding:3px 10px;border-radius:6px;background:${meta.bg};color:${meta.fg};letter-spacing:.1em;align-self:flex-start">${escHtml(meta.tag)}</span>
 <p style="font-size:14px;font-weight:600;color:${C.text1};line-height:1.55;margin:0;flex:1">${escHtml(item.title)}</p>
 <div style="display:flex;justify-content:space-between;align-items:center">
@@ -246,7 +246,7 @@ function renderIntro(){
   <div class="hero-grid" style="border-bottom:1px solid ${C.border}">
     <div>
       <p style="${mono};font-size:12px;color:${C.mint};letter-spacing:.16em;text-transform:uppercase;margin-bottom:20px">Republic of Ireland · Political Compass · April 2026</p>
-      <h1 class="hero-wordmark" style="${disp};font-size:clamp(72px,9vw,120px);line-height:.88;letter-spacing:.02em;color:${C.text1};margin-bottom:16px">TILT<span style="color:${C.mint}">.</span></h1>
+      <h1 class="hero-wordmark" style="${disp};font-size:clamp(72px,9vw,120px);line-height:.88;letter-spacing:-.02em;color:${C.text1};margin-bottom:16px">TILT<span style="color:${C.mint}">.</span></h1>
       <p style="${mono};font-size:14px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:${C.text2};margin-bottom:10px">WHERE DO I CURRENTLY STAND?</p>
       <p style="font-size:16px;color:${C.text2};line-height:1.6;margin-bottom:12px">A guide to your political leaning in Ireland.</p>
       <div style="background:${C.surface};border:1px solid ${C.mint};border-radius:12px;padding:12px 16px;margin-bottom:32px;font-size:13px;color:${C.text2};line-height:1.6">
@@ -364,7 +364,7 @@ function renderQuiz(){
     const tc=n=>{if(v!==n)return"tap-btn";if(n<0)return"tap-btn neg";if(n>0)return"tap-btn pos";return"tap-btn neu";};
     return`<div style="background:${C.surface};border:1px solid ${ans?'rgba(60,255,208,.2)':C.border};border-radius:20px;padding:24px;margin-bottom:16px;transition:border-color .2s" id="card-${q.id}">
 <p style="font-size:16px;font-weight:600;color:${C.text1};line-height:1.5;margin-bottom:14px">${q.text}</p>
-<div class="q-explain-block" style="border-radius:0 10px 10px 0;padding:12px 16px;margin-bottom:16px;font-size:13px;color:${C.text2};line-height:1.65">${q.explain}</div>
+<div class="q-explain-block" style="border-radius:0 10px 10px 0;padding:12px 16px;margin-bottom:16px;font-size:14px;color:${C.text2};line-height:1.65">${q.explain}</div>
 <div style="${mono};text-align:center;font-size:11px;font-weight:700;min-height:20px;margin-bottom:10px;color:${ans?C.mint:C.text3};letter-spacing:.06em" id="ans-${q.id}">${ans?VLABELS[String(v)].toUpperCase():"SELECT YOUR POSITION"}</div>
 <div style="display:flex;justify-content:space-between;${mono};font-size:11px;color:${C.text3};margin-bottom:8px;letter-spacing:.06em"><span>STRONGLY DISAGREE</span><span>STRONGLY AGREE</span></div>
 <div style="display:flex;gap:6px">${[-2,-1,0,1,2].map(n=>`<button id="btn-${q.id}-${n}" class="${tc(n)}" onclick="setAns(${q.id},${n})">${BLABELS[String(n)]}</button>`).join("")}</div>
@@ -387,7 +387,7 @@ function renderQuiz(){
   $id("root").innerHTML=headerHTML(done,qs.length)+
 `<div style="height:2px;background:${C.border}"><div id="pbar" style="height:100%;background:${C.mint};width:${Math.round((done/qs.length)*100)}%"></div></div>
 <div class="wrap">
-<div class="cat-tabs" style="border-bottom:1px solid ${C.border};margin-bottom:24px">${catBtns}</div>
+<div class="cat-tabs-wrap" style="border-bottom:1px solid ${C.border};margin-bottom:24px"><div class="cat-tabs">${catBtns}</div></div>
 <div class="quiz-layout">
 
   <!-- SIDEBAR -->
@@ -409,7 +409,7 @@ function renderQuiz(){
   <div class="quiz-main">
     ${notice}
     <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:6px;flex-wrap:wrap">
-      <h2 style="${disp};font-size:32px;color:${C.text1};letter-spacing:.04em">${cat.toUpperCase()}</h2>${modeLbl}
+      <h2 style="${disp};font-size:32px;color:${C.text1};letter-spacing:-.01em">${cat.toUpperCase()}</h2>${modeLbl}
     </div>
     <p style="${mono};font-size:12px;color:${C.text3};letter-spacing:.08em;margin-bottom:24px">${done}/${qs.length} ANSWERED</p>
     ${qCards}
@@ -434,7 +434,10 @@ ${mobileSheetHTML(axes,scored,hasAny,done,qs.length)}
 </button>`;
   document.body.style.overflow="";
   applyTheme();startTicker();
-  if(!S.hideCompass)requestAnimationFrame(()=>drawCompass("compass-canvas",axes,300,240));
+  if(!S.hideCompass)requestAnimationFrame(()=>{
+    const cv=$id("compass-canvas");
+    if(cv){const w=cv.parentElement.offsetWidth-2;const h=Math.round(w*.75);cv.width=w;cv.height=h;drawCompass("compass-canvas",axes,w,h);}
+  });
 }
 
 /* ── RESULTS ─────────────────────────────── */
@@ -464,16 +467,17 @@ function renderResults(){
   $id("root").innerHTML=headerHTML()+`
 <div class="wrap" style="padding-bottom:64px">
 
-  <!-- LEAN HERO -->
-  <div style="margin:40px 0;padding:40px 48px;border-radius:20px;background:${C.surface};border:1px solid ${C.border}">
-    <div style="${label};margin-bottom:16px">YOUR POLITICAL LEANING</div>
-    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:32px;flex-wrap:wrap">
-      <div>
-        <h2 style="${disp};font-size:clamp(48px,7vw,96px);line-height:.9;color:${C.mint};letter-spacing:.03em;margin-bottom:8px">${lean.toUpperCase()}</h2>
-        <p style="${mono};font-size:13px;font-weight:700;color:${C.text2};letter-spacing:.10em;text-transform:uppercase;margin-bottom:${leanDef?'16px':'0'}">${sub}</p>
-        ${leanDef?`<p style="font-size:14px;color:${C.text2};line-height:1.7;max-width:560px">${leanDef}</p>`:""}
+  <!-- LEAN HERO — full-bleed editorial reveal -->
+  <div style="margin:32px 0 40px;border-radius:24px;overflow:hidden;position:relative;background:linear-gradient(135deg,rgba(60,255,208,.08) 0%,rgba(60,255,208,.02) 50%,transparent 100%);border:1px solid rgba(60,255,208,.25)">
+    <div style="padding:clamp(24px,4vw,48px) clamp(20px,4vw,48px)">
+      <div style="${mono};font-size:11px;font-weight:700;letter-spacing:.14em;color:rgba(60,255,208,.6);text-transform:uppercase;margin-bottom:12px">YOUR POLITICAL LEANING · APRIL 2026 · IRELAND</div>
+      <h2 style="${disp};font-size:clamp(52px,8vw,104px);line-height:.88;color:${C.mint};letter-spacing:-.02em;margin-bottom:10px">${lean.toUpperCase()}</h2>
+      <p style="${mono};font-size:14px;font-weight:700;color:${C.text2};letter-spacing:.1em;text-transform:uppercase;margin-bottom:${leanDef?'20px':'0'}">${sub}</p>
+      ${leanDef?`<p style="font-size:15px;color:${C.text2};line-height:1.75;max-width:600px;margin-bottom:24px">${leanDef}</p>`:""}
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:${leanDef?'0':'20px'}">
+        <button onclick="shareResults('${lean}','${sub}')" style="${mono};font-size:11px;font-weight:700;padding:11px 22px;border-radius:24px;border:none;background:${C.mint};color:#000;cursor:pointer;letter-spacing:.06em;display:flex;align-items:center;gap:8px;transition:opacity .15s" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">↑ SHARE RESULT</button>
+        <button onclick="go('guide')" style="${mono};font-size:11px;font-weight:700;padding:11px 22px;border-radius:24px;border:1px solid rgba(60,255,208,.35);background:transparent;color:${C.mint};cursor:pointer;letter-spacing:.06em;transition:all .15s" onmouseover="this.style.borderColor='${C.mint}'" onmouseout="this.style.borderColor='rgba(60,255,208,.35)'">WHAT DOES THIS MEAN? →</button>
       </div>
-      <div style="${mono};font-size:12px;color:${C.text3};letter-spacing:.08em;text-align:right;padding-top:8px">APRIL 2026 · IRELAND</div>
     </div>
   </div>
 
@@ -492,12 +496,12 @@ function renderResults(){
   </div>
 
   <!-- TOP MATCHES -->
-  <div style="${label};margin-bottom:20px">YOUR CLOSEST MATCHES</div>
+  <div style="${mono};font-size:13px;font-weight:700;color:${C.text2};letter-spacing:.10em;text-transform:uppercase;margin-bottom:20px">YOUR CLOSEST MATCHES</div>
   <div id="results-top5" style="margin-bottom:40px">${resultTop5HTML(list.slice(0,5))}</div>
 
   <!-- ALL PARTIES -->
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-    <div style="${label}">ALL PARTIES RANKED</div>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+    <div style="${mono};font-size:13px;font-weight:700;color:${C.text2};letter-spacing:.10em;text-transform:uppercase">ALL PARTIES RANKED</div>
     <button id="minor-toggle-btn" onclick="toggleMinor()" style="${mono};font-size:12px;font-weight:700;padding:6px 16px;border-radius:24px;border:1px solid ${S.showMinor?C.mint:C.border};background:${S.showMinor?'rgba(60,255,208,.08)':'transparent'};color:${S.showMinor?C.mint:C.text3};cursor:pointer;letter-spacing:.06em;text-transform:uppercase;transition:all .15s">${S.showMinor?"HIDE MINOR PARTIES":"SHOW MINOR PARTIES"}</button>
   </div>
   <div style="background:${C.surface};border:1px solid ${C.border};border-radius:20px;padding:8px 20px;margin-bottom:40px">
@@ -507,10 +511,9 @@ function renderResults(){
   <hr style="border:none;border-top:1px solid ${C.border};margin:40px 0">
   ${legendHTML()}
 
-  <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px">
+  <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px">
     <button onclick="go('intro')" style="${mono};font-size:11px;font-weight:700;padding:12px 24px;border-radius:24px;border:1px solid ${C.border};background:transparent;color:${C.text2};cursor:pointer;letter-spacing:.06em;transition:all .15s">← START AGAIN</button>
     <button onclick="go('quiz')" style="${mono};font-size:11px;font-weight:700;padding:12px 24px;border-radius:24px;border:1px solid ${C.border};background:transparent;color:${C.text2};cursor:pointer;letter-spacing:.06em;transition:all .15s">EDIT ANSWERS</button>
-    <button onclick="go('guide')" style="${mono};font-size:11px;font-weight:700;padding:12px 24px;border-radius:24px;border:1px solid ${C.mint};background:rgba(60,255,208,.06);color:${C.mint};cursor:pointer;letter-spacing:.06em;transition:all .15s">WHAT DO MY RESULTS MEAN? →</button>
   </div>
   <p style="font-size:12px;color:${C.text3};line-height:1.7">Based on GE2024 manifestos, Oireachtas voting records, and published policy positions as of April 2026.</p>
   ${footerHTML()}
@@ -540,7 +543,7 @@ function renderGuide(){
   ${mine?myBadge:""}
 </div>
 <div style="${mono};font-size:10px;color:${C.text3};letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px">${sub}</div>
-<p style="font-size:13px;color:${C.text2};line-height:1.65;margin:0">${desc}</p>
+<p style="font-size:14px;color:${C.text2};line-height:1.65;margin:0">${desc}</p>
 </div>`;
   };
 

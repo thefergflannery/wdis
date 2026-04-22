@@ -57,6 +57,22 @@ function computeAvgPos(p1){
   return total>0?{x:sumX/total,y:sumY/total}:null;
 }
 
+window.shareResults=(lean,sub)=>{
+  const axes=computeAxes(S.answers);
+  const scored=matchParties(axes);
+  const top=scored.slice(0,3).map(p=>p.name).join(', ');
+  const text=`My TILT result: ${lean} (${sub})\nClosest matches: ${top}\nFind your political leaning in Ireland →`;
+  const url=window.location.href;
+  if(navigator.share){
+    navigator.share({title:'TILT — My Political Leaning',text,url}).catch(()=>{});
+  } else {
+    navigator.clipboard.writeText(text+'\n'+url).then(()=>{
+      const btn=document.querySelector('[onclick^="shareResults"]');
+      if(btn){const orig=btn.innerHTML;btn.innerHTML='✓ COPIED';setTimeout(()=>{btn.innerHTML=orig;},2000);}
+    }).catch(()=>{});
+  }
+};
+
 window.go=p=>{
   S.phase=p;
   if(p==="quiz"&&S.cat===undefined)S.cat=0;
@@ -103,7 +119,8 @@ window.setAns=(id,v)=>{
   const hasAny=Object.keys(axes).length>0;
   const scored=matchParties(axes);
   if(!S.hideCompass){
-    drawCompass("compass-canvas",axes,236,236);
+    const cv=$id("compass-canvas");
+    if(cv){const w=cv.parentElement.offsetWidth-2;const h=Math.round(w*.75);cv.width=w;cv.height=h;drawCompass("compass-canvas",axes,w,h);}
     const pl=$id("party-list-box");if(pl)pl.innerHTML=sidePartyListHTML(scored,hasAny);
   }
   const ab=$id("axis-box");if(ab)ab.innerHTML=sideAxisHTML(axes);

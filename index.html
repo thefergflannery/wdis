@@ -4,13 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>TILT — Where Do I Currently Stand?</title>
-<meta name="description" content="56 questions. 20 parties. A guide to your political leaning in Ireland.">
+<meta name="description" content="72 questions. 20 parties. Find your political leaning in Ireland. Not for profit. For educational purposes.">
 <!-- Open Graph / LinkedIn -->
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="TILT">
 <meta property="og:url" content="https://wdisf-ferg-flannerys-projects.vercel.app/">
 <meta property="og:title" content="TILT — Where Do I Currently Stand?">
-<meta property="og:description" content="56 questions. 20 parties. Find your political leaning in Ireland. Not for profit. For educational purposes.">
+<meta property="og:description" content="72 questions. 20 parties. Find your political leaning in Ireland. Not for profit. For educational purposes.">
 <meta property="og:image" content="https://raw.githubusercontent.com/thefergflannery/wdis/main/images/social.jpg">
 <meta property="og:image:width" content="1431">
 <meta property="og:image:height" content="954">
@@ -102,6 +102,8 @@ html:not(.dark) .q-explain-block{border-left:2px solid #4f46e5;background:#f8faf
 .hero-grid{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center;padding:80px 0 64px}
 .news-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:64px}
 .legend-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin-bottom:40px}
+.cat-tabs-wrap{position:relative}
+.cat-tabs-wrap::after{content:'';position:absolute;right:0;top:0;bottom:0;width:48px;background:linear-gradient(to right,transparent,#131313);pointer-events:none;z-index:1}
 .cat-tabs{display:flex;gap:8px;padding:20px 0 16px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;flex-wrap:nowrap}
 .cat-tabs::-webkit-scrollbar{display:none}
 .quiz-layout{display:flex;gap:32px;align-items:flex-start;padding-bottom:64px}
@@ -139,7 +141,7 @@ html:not(.dark) .q-explain-block{border-left:2px solid #4f46e5;background:#f8faf
   .show-mobile{display:block !important}
 }
 /* Mobile bottom sheet */
-.mobile-fab{display:none;position:fixed;bottom:24px;right:20px;z-index:98;align-items:center;gap:10px;background:#3cffd0;color:#000;border:none;border-radius:28px;padding:14px 22px;font-family:'Space Mono',monospace;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;box-shadow:0 4px 24px rgba(60,255,208,.35);transition:transform .15s,box-shadow .15s}
+.mobile-fab{display:none;position:fixed;bottom:calc(24px + env(safe-area-inset-bottom, 0px));right:20px;z-index:98;align-items:center;gap:10px;background:#3cffd0;color:#000;border:none;border-radius:28px;padding:14px 22px;font-family:'Space Mono',monospace;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;box-shadow:0 4px 24px rgba(60,255,208,.35);transition:transform .15s,box-shadow .15s}
 .mobile-fab:active{transform:scale(.95);box-shadow:0 2px 12px rgba(60,255,208,.2)}
 .results-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:99;opacity:0;pointer-events:none;transition:opacity .25s ease}
 .results-backdrop.open{opacity:1;pointer-events:all}
