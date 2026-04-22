@@ -1,18 +1,32 @@
-// Server-side RSS proxy — fetches Irish news feeds and returns sanitized JSON.
-// Replaces the client-side api.rss2json.com third-party proxy to eliminate XSS risk.
+// Server-side RSS proxy — fetches Irish politics news feeds, returns sanitized JSON.
 // Returns: { items: [{ title, link, pubDate, source }] }
+// Enforces max 2 items per source in final output to ensure variety.
 
 const https = require('https');
 const http = require('http');
 
 const FEEDS = [
-  { url: 'https://feeds.rte.ie/rtenews/ireland', source: 'RTÉ News' },
-  { url: 'https://feeds.rte.ie/rtepolitics', source: 'RTÉ Politics' },
-  { url: 'https://www.thejournal.ie/feed/', source: 'The Journal' },
+  { url: 'https://feeds.rte.ie/rtepolitics',                           source: 'RTÉ Politics' },
+  { url: 'https://feeds.rte.ie/rtenews/ireland',                       source: 'RTÉ News' },
+  { url: 'https://www.thejournal.ie/feed/',                            source: 'The Journal' },
+  { url: 'https://www.irishexaminer.com/feed/news/politics/',          source: 'Irish Examiner' },
+  { url: 'https://www.newstalk.com/news/politics/feed/',               source: 'Newstalk' },
+  { url: 'https://www.irishexaminer.com/feed/news/ireland/',           source: 'Irish Examiner' },
 ];
 
-const MAX_ITEMS_PER_FEED = 4;
+const MAX_ITEMS_PER_FEED = 6;
+const MAX_PER_SOURCE = 2;
 const TIMEOUT_MS = 5000;
+
+const ALLOWED_HOSTNAMES = new Set([
+  'rte.ie', 'www.rte.ie',
+  'thejournal.ie', 'www.thejournal.ie',
+  'irishtimes.com', 'www.irishtimes.com',
+  'independent.ie', 'www.independent.ie',
+  'irishexaminer.com', 'www.irishexaminer.com',
+  'newstalk.com', 'www.newstalk.com',
+  'breakingnews.ie', 'www.breakingnews.ie',
+]);
 
 function fetchUrl(url) {
   return new Promise((resolve, reject) => {
@@ -23,7 +37,7 @@ function fetchUrl(url) {
         return;
       }
       let data = '';
-      res.on('data', chunk => { data += chunk; });
+      res.on('data', chunk => { data += chunk; if (data.length > 500_000) req.destroy(); });
       res.on('end', () => resolve(data));
     });
     req.on('error', reject);
@@ -41,11 +55,10 @@ function parseItems(xml, source) {
     const link = extractTag(block, 'link') || extractAttr(block, 'link', 'href') || '';
     const pubDate = extractTag(block, 'pubDate') || extractTag(block, 'dc:date') || '';
     if (!title || !link) continue;
-    // Only allow known-safe hostnames
     try {
-      const hostname = new URL(link).hostname;
-      if (!hostname.endsWith('.rte.ie') && !hostname.endsWith('.thejournal.ie') &&
-          !hostname.endsWith('.irishtimes.com') && !hostname.endsWith('.independent.ie')) continue;
+      const u = new URL(link);
+      const host = u.hostname.replace(/^www\./, '');
+      if (!ALLOWED_HOSTNAMES.has(u.hostname) && !ALLOWED_HOSTNAMES.has(host)) continue;
     } catch { continue; }
     items.push({ title, link, pubDate, source });
   }
@@ -56,7 +69,6 @@ function extractTag(str, tag) {
   const re = new RegExp(`<${tag}(?:[^>]*)>([\\s\\S]*?)<\\/${tag}>`, 'i');
   const m = re.exec(str);
   if (!m) return '';
-  // Strip CDATA
   return m[1].replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1').trim();
 }
 
@@ -71,26 +83,43 @@ function stripTags(str) {
     .replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'").trim();
 }
 
+// Pick up to `limit` items from the pool ensuring no source appears more than MAX_PER_SOURCE times.
+function diversify(allItems, limit) {
+  const sorted = [...allItems].sort((a, b) => {
+    const da = a.pubDate ? new Date(a.pubDate) : 0;
+    const db = b.pubDate ? new Date(b.pubDate) : 0;
+    return db - da;
+  });
+  const counts = {};
+  const out = [];
+  for (const item of sorted) {
+    if (out.length >= limit) break;
+    const c = counts[item.source] || 0;
+    if (c >= MAX_PER_SOURCE) continue;
+    counts[item.source] = c + 1;
+    out.push(item);
+  }
+  return out;
+}
+
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', 'same-origin');
   res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate=60');
 
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
 
-  const results = await Promise.allSettled(FEEDS.map(async ({ url, source }) => {
-    const xml = await fetchUrl(url);
-    return parseItems(xml, source);
-  }));
-
-  const items = results
-    .filter(r => r.status === 'fulfilled')
-    .flatMap(r => r.value)
-    .sort((a, b) => {
-      const da = a.pubDate ? new Date(a.pubDate) : 0;
-      const db = b.pubDate ? new Date(b.pubDate) : 0;
-      return db - da;
+  const results = await Promise.allSettled(
+    FEEDS.map(async ({ url, source }) => {
+      const xml = await fetchUrl(url);
+      return parseItems(xml, source);
     })
-    .slice(0, 9);
+  );
+
+  const allItems = results
+    .filter(r => r.status === 'fulfilled')
+    .flatMap(r => r.value);
+
+  const items = diversify(allItems, 9);
 
   return res.status(200).json({ items });
 };

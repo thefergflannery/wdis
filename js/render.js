@@ -80,9 +80,9 @@ function newsGridHTML(){
 <div style="flex:1;background:${C.border};border-radius:6px;opacity:.45;animation:tilt-pulse 1.4s ease-in-out infinite .15s"></div>
 <div style="width:90px;height:12px;background:${C.border};border-radius:6px;opacity:.35;animation:tilt-pulse 1.4s ease-in-out infinite .3s"></div>
 </div>`;
-  return`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
-<span style="${label}">LATEST NEWS</span>
-<span id="news-updated" style="${mono};font-size:10px;color:${C.text3};letter-spacing:.06em"></span>
+  return`<div style="display:flex;align-items:baseline;justify-content:space-between;gap:16px;margin-bottom:20px;flex-wrap:wrap">
+<h2 style="${disp};font-size:clamp(22px,3.5vw,36px);color:${C.text1};letter-spacing:.04em;margin:0;line-height:1">LATEST IRISH POLITICAL NEWS</h2>
+<span id="news-updated" style="${mono};font-size:10px;color:${C.text3};letter-spacing:.06em;flex-shrink:0"></span>
 </div>
 <div class="news-grid" id="news-grid-dynamic">${skeleton}${skeleton}${skeleton}</div>`;
 }
@@ -92,9 +92,11 @@ function escHtml(s){
 }
 
 const SOURCE_META={
-  'RTÉ News':{tag:'IRELAND',bg:'#ff3c3c',fg:'#fff'},
-  'RTÉ Politics':{tag:'POLITICS',bg:'#3cffd0',fg:'#000'},
-  'The Journal':{tag:'NEWS',bg:'#f0a500',fg:'#000'},
+  'RTÉ Politics':  {tag:'RTÉ POLITICS',   bg:'#3cffd0',fg:'#000'},
+  'RTÉ News':      {tag:'RTÉ NEWS',       bg:'#ff3c3c',fg:'#fff'},
+  'The Journal':   {tag:'THE JOURNAL',    bg:'#f0a500',fg:'#000'},
+  'Irish Examiner':{tag:'IRISH EXAMINER', bg:'#c84b31',fg:'#fff'},
+  'Newstalk':      {tag:'NEWSTALK',       bg:'#1a4fa0',fg:'#fff'},
 };
 
 async function loadNewsGrid(){
