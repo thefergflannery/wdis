@@ -1,4 +1,16 @@
-let S={phase:"intro",cat:0,answers:{},dark:true,showMinor:true,mode:"full",shuffledQS:null,shuffledCATS:null,hideCompass:false,showAverage:false,mobileCompassOpen:false};
+let S={phase:"intro",cat:0,answers:{},dark:true,showMinor:true,mode:"full",shuffledQS:null,shuffledCATS:null,hideCompass:false,showAverage:false,mobileCompassOpen:false,quizStartTime:null,pageStartTime:Date.now()};
+
+// PostHog wrapper — safe no-op if key not yet configured
+function track(event,props){
+  try{if(window.posthog&&typeof posthog.capture==="function")posthog.capture(event,props||{});}catch(e){}
+}
+
+// Track time spent on current phase before leaving it
+function trackPageLeave(nextPhase){
+  const secs=Math.round((Date.now()-S.pageStartTime)/1000);
+  track('page_exit',{phase:S.phase,duration_seconds:secs,next_phase:nextPhase});
+  S.pageStartTime=Date.now();
+}
 
 function shuffle(arr){
   const a=[...arr];
@@ -63,6 +75,7 @@ window.shareResults=(lean,sub)=>{
   const top=scored.slice(0,3).map(p=>p.name).join(', ');
   const text=`My TILT result: ${lean} (${sub})\nClosest matches: ${top}\nFind your political leaning in Ireland →`;
   const url=window.location.href;
+  track('result_shared',{lean,method:navigator.share?'native_share':'clipboard'});
   if(navigator.share){
     navigator.share({title:'TILT — My Political Leaning',text,url}).catch(()=>{});
   } else {
@@ -74,6 +87,7 @@ window.shareResults=(lean,sub)=>{
 };
 
 window.go=p=>{
+  trackPageLeave(p);
   S.phase=p;
   if(p==="quiz"&&S.cat===undefined)S.cat=0;
   if(p==="results"){
@@ -91,12 +105,32 @@ window.go=p=>{
           }).catch(()=>{});
           localStorage.setItem('tilt_last_submit',String(Date.now()));
         }
+        // Track quiz completion
+        const [lean,sub]=getLean(computePos(axes).x,computePos(axes).y);
+        const quizDuration=S.quizStartTime?Math.round((Date.now()-S.quizStartTime)/1000):null;
+        track('quiz_completed',{
+          mode:S.mode,
+          lean,
+          sub,
+          top_match:scored[0]?.abbr,
+          top_match_pct:scored[0]?.match,
+          answers_given:Object.keys(S.answers).length,
+          quiz_duration_seconds:quizDuration,
+        });
       }
     }catch(e){}
   }
+  if(p==="guide")track('guide_viewed',{from:S.phase});
+  if(p==="intro"&&S.phase!=="intro")track('page_view',{phase:'intro'});
   render();
 };
-window.startQuiz=mode=>{S.mode=mode;S.answers={};S.cat=0;S.phase="quiz";S.shuffledQS=buildShuffledQS(mode);render();};
+window.startQuiz=mode=>{
+  trackPageLeave("quiz");
+  S.mode=mode;S.answers={};S.cat=0;S.phase="quiz";S.quizStartTime=Date.now();
+  S.shuffledQS=buildShuffledQS(mode);
+  track('quiz_started',{mode,total_questions:S.shuffledQS.length});
+  render();
+};
 window.setCat=i=>{S.cat=i;render();};
 window.prevCat=()=>{if(S.cat>0){S.cat--;render();}};
 window.nextCat=()=>{
@@ -283,7 +317,10 @@ window.toggleCompass=()=>{
 </div>
 <div id="party-list-box">${sidePartyListHTML(scored,hasAny)}</div>
 </div>`;
-      requestAnimationFrame(()=>drawCompass("compass-canvas",axes,284,220));
+      requestAnimationFrame(()=>{
+        const cv=$id("compass-canvas");
+        if(cv){const w=cv.parentElement.offsetWidth-2;const h=Math.round(w*.75);cv.width=w;cv.height=h;drawCompass("compass-canvas",axes,w,h);}
+      });
     }
   }
 };
@@ -294,7 +331,7 @@ window.toggleMinor=()=>{
   if(S.phase==="quiz"){
     const axes=computeAxes(S.answers);const hasAny=Object.keys(S.answers).length>0;
     const scored=matchParties(axes);
-    drawCompass("compass-canvas",axes,236,236);
+    const cv=$id("compass-canvas");if(cv){const w=cv.parentElement.offsetWidth-2;const h=Math.round(w*.75);cv.width=w;cv.height=h;drawCompass("compass-canvas",axes,w,h);}
     const pl=$id("party-list-box");if(pl)pl.innerHTML=sidePartyListHTML(scored,hasAny);
     const mpl=$id("mobile-party-list-box");if(mpl)mpl.innerHTML=sidePartyListHTML(scored,hasAny);
   } else if(S.phase==="results"){
@@ -307,6 +344,17 @@ window.toggleMinor=()=>{
   }
 };
 
+window.toggleAnswersSection=()=>{
+  const body=$id("answers-body");
+  const arrow=$id("answers-arrow");
+  const btn=$id("answers-toggle-btn");
+  if(!body)return;
+  const open=body.style.display==="none"||body.style.display==="";
+  body.style.display=open?"block":"none";
+  if(arrow)arrow.style.transform=open?"rotate(180deg)":"rotate(0deg)";
+  if(btn)btn.setAttribute("aria-expanded",open?"true":"false");
+};
+
 function render(){
   if(S.phase==="intro")renderIntro();
   else if(S.phase==="quiz")renderQuiz();
@@ -315,3 +363,4 @@ function render(){
 }
 
 render();
+track('page_view',{phase:'intro'});

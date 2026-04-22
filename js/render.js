@@ -41,6 +41,32 @@ ${i===0?`<span style="${mono};font-size:11px;padding:2px 10px;border-radius:20px
 </div>`).join("");
 }
 
+function answersReviewHTML(answers){
+  const answerColour={'-2':C.mint,'-1':'rgba(60,255,208,.55)','0':C.text3,'1':'rgba(82,0,255,.7)','2':C.uv};
+  const cats=activeCATS?activeCATS():(CATS||[]);
+  const sections=cats.map(cat=>{
+    const qs=(activeQS?activeQS():QS).filter(q=>q.cat===cat&&answers[q.id]!==undefined);
+    if(!qs.length)return'';
+    const rows=qs.map(q=>{
+      const v=answers[q.id];
+      const lbl=VLABELS[String(v)]||'—';
+      const col=answerColour[String(v)]||C.text3;
+      const isNeg=v<0,isPos=v>0;
+      return`<div style="display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid ${C.border}">
+  <div style="flex:1;min-width:0">
+    <p style="font-size:13px;color:${C.text2};line-height:1.55;margin:0">${q.text}</p>
+  </div>
+  <span style="${mono};font-size:11px;font-weight:700;color:${col};white-space:nowrap;flex-shrink:0;padding:3px 10px;border-radius:20px;background:${isNeg?'rgba(60,255,208,.07)':isPos?'rgba(82,0,255,.07)':'rgba(255,255,255,.04)'};border:1px solid ${isNeg?'rgba(60,255,208,.2)':isPos?'rgba(82,0,255,.25)':'rgba(255,255,255,.08)'}">${lbl.toUpperCase()}</span>
+</div>`;
+    }).join('');
+    return`<div style="margin-bottom:24px">
+  <div style="${label};margin-bottom:8px">${cat.toUpperCase()}</div>
+  ${rows}
+</div>`;
+  }).filter(Boolean).join('');
+  return sections||`<p style="${mono};font-size:12px;color:${C.text3};padding:16px 0">No answers recorded.</p>`;
+}
+
 function resultAllPartiesHTML(list){
   return list.map((p,i)=>`<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid ${C.border}${i===list.length-1?';border-bottom:none':''}">
 <span style="${mono};font-size:12px;color:${C.text3};width:20px;text-align:right;flex-shrink:0">${i+1}</span>
@@ -234,7 +260,19 @@ Created not for profit and for educational purposes by <a href="https://fergflan
 <p style="${sans};font-size:12px;color:rgba(0,0,0,0.6);line-height:1.8;max-width:720px;margin-top:8px">
 This tool does not guarantee the accuracy, completeness, or timeliness of the data, and we are not liable for any decisions made based on this information. Users are encouraged to verify critical information directly with the original source.
 </p>
+<div style="margin-top:20px;padding-top:16px;border-top:1px solid rgba(0,0,0,.12);display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+  <a href="mailto:hello@fergflannery.com?subject=TILT%20Feature%20Request&body=Hi%2C%20I%20have%20a%20feature%20request%20for%20TILT%3A%0A%0A" style="${mono};font-size:11px;font-weight:700;color:#000;text-decoration:none;letter-spacing:.08em;padding:8px 16px;border:1px solid rgba(0,0,0,.25);border-radius:20px;transition:background .15s" onmouseover="this.style.background='rgba(0,0,0,.07)'" onmouseout="this.style.background='transparent'">✉ SUGGEST A FEATURE</a>
+  <span style="${mono};font-size:10px;color:rgba(0,0,0,.4);letter-spacing:.06em">TILT · APRIL 2026</span>
+</div>
 </footer>`;
+}
+
+// Compact quiz-page footer — one line, non-intrusive
+function quizFooterHTML(){
+  return`<div style="border-top:1px solid ${C.border};margin-top:40px;padding:14px 0;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+  <span style="${mono};font-size:10px;color:${C.text3};letter-spacing:.08em">TILT · Not for profit · Educational purposes · April 2026</span>
+  <a href="mailto:hello@fergflannery.com?subject=TILT%20Feature%20Request&body=Hi%2C%20I%20have%20a%20feature%20request%20for%20TILT%3A%0A%0A" style="${mono};font-size:10px;color:${C.text3};text-decoration:none;letter-spacing:.08em;transition:color .15s" onmouseover="this.style.color='${C.text2}'" onmouseout="this.style.color='${C.text3}'">✉ SUGGEST A FEATURE</a>
+</div>`;
 }
 
 /* ── INTRO ───────────────────────────────── */
@@ -427,6 +465,7 @@ function renderQuiz(){
 
 </div>
 </div>
+${quizFooterHTML()}
 ${mobileSheetHTML(axes,scored,hasAny,done,qs.length)}
 <button class="mobile-fab" id="mobile-fab" onclick="showResultsSheet()">
   <span>VIEW POSITION</span>
@@ -506,6 +545,20 @@ function renderResults(){
   </div>
   <div style="background:${C.surface};border:1px solid ${C.border};border-radius:20px;padding:8px 20px;margin-bottom:40px">
     <div id="results-all-parties">${resultAllPartiesHTML(list)}</div>
+  </div>
+
+  <!-- YOUR ANSWERS -->
+  <div style="margin-bottom:40px">
+    <button id="answers-toggle-btn" onclick="toggleAnswersSection()" aria-expanded="false" style="display:flex;align-items:center;justify-content:space-between;width:100%;background:${C.surface};border:1px solid ${C.border};border-radius:16px;padding:16px 20px;cursor:pointer;transition:border-color .2s;text-align:left" onmouseover="this.style.borderColor='${C.text3}'" onmouseout="this.style.borderColor='${C.border}'">
+      <div style="display:flex;align-items:center;gap:12px">
+        <span style="${mono};font-size:13px;font-weight:700;color:${C.text2};letter-spacing:.08em;text-transform:uppercase">YOUR ANSWERS</span>
+        <span style="${mono};font-size:11px;color:${C.text3};letter-spacing:.06em">${Object.keys(S.answers).length} QUESTIONS</span>
+      </div>
+      <span id="answers-arrow" style="color:${C.text3};font-size:14px;transition:transform .2s;display:inline-block">▾</span>
+    </button>
+    <div id="answers-body" style="display:none;background:${C.surface};border:1px solid ${C.border};border-top:none;border-radius:0 0 16px 16px;padding:8px 20px 16px">
+      ${answersReviewHTML(S.answers)}
+    </div>
   </div>
 
   <hr style="border:none;border-top:1px solid ${C.border};margin:40px 0">
@@ -675,6 +728,7 @@ ${posCard("Moderate","Mixed views across issues",C.text3,"A balanced mix of view
     ${hasResults?`<button onclick="go('intro')" style="${mono};font-size:11px;font-weight:700;padding:12px 24px;border-radius:24px;border:1px solid ${C.border};background:transparent;color:${C.text2};cursor:pointer;letter-spacing:.06em">START AGAIN</button>`:""}
     ${!hasResults?`<button onclick="startQuiz('full')" style="${mono};font-size:11px;font-weight:700;padding:12px 24px;border-radius:24px;border:none;background:${C.mint};color:#000;cursor:pointer;letter-spacing:.06em">TAKE THE QUIZ →</button>`:""}
   </div>
+  ${quizFooterHTML()}
   ${footerHTML()}
 </div>`;
   applyTheme();startTicker();
