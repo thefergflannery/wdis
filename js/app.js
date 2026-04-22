@@ -45,28 +45,36 @@ function applyTheme(){
   const btn=$id("theme-btn");if(btn)btn.textContent=S.dark?"☀ Light":"☾ Dark";
 }
 
-function getStoredAvg(){
-  try{
-    const a=JSON.parse(localStorage.getItem('tilt_results')||'[]');
-    if(!a.length)return null;
-    const mx=a.reduce((s,r)=>s+r.x,0)/a.length;
-    const my=a.reduce((s,r)=>s+r.y,0)/a.length;
-    return{x:Math.round(mx*100)/100,y:Math.round(my*100)/100,n:a.length};
-  }catch(e){return null;}
+function computeAvgPos(p1){
+  if(!p1||!Object.keys(p1).length)return null;
+  let sumX=0,sumY=0,total=0;
+  Object.entries(p1).forEach(([abbr,count])=>{
+    const party=PARTIES.find(p=>p.abbr===abbr);
+    if(!party)return;
+    const pos=computePos(party);
+    sumX+=pos.x*count;sumY+=pos.y*count;total+=count;
+  });
+  return total>0?{x:sumX/total,y:sumY/total}:null;
 }
 
 window.go=p=>{
   S.phase=p;
   if(p==="quiz"&&S.cat===undefined)S.cat=0;
   if(p==="results"){
-    // Save aggregate position — no personal data, just {x,y} floats
+    // POST top 3 results — only party abbreviations, no personal data
     try{
       const axes=computeAxes(S.answers);
-      if(Object.keys(axes).length>2){
-        const pos=computePos(axes);
-        const stored=JSON.parse(localStorage.getItem('tilt_results')||'[]');
-        stored.push({x:Math.round(pos.x*100)/100,y:Math.round(pos.y*100)/100});
-        localStorage.setItem('tilt_results',JSON.stringify(stored.slice(-2000)));
+      const scored=matchParties(axes);
+      if(scored.length>=1&&Object.keys(axes).length>2){
+        const lastSubmit=parseInt(localStorage.getItem('tilt_last_submit')||'0');
+        if(Date.now()-lastSubmit>3600000){
+          fetch('/api/results',{
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({result1:scored[0].abbr,result2:scored[1]?.abbr||'',result3:scored[2]?.abbr||''}),
+          }).catch(()=>{});
+          localStorage.setItem('tilt_last_submit',String(Date.now()));
+        }
       }
     }catch(e){}
   }
@@ -137,34 +145,59 @@ window.hideResultsSheet=()=>{
   document.body.style.overflow="";
 };
 window.themeToggle=()=>{S.dark=!S.dark;applyTheme();const axes=computeAxes(S.answers);if(!S.hideCompass)drawCompass("compass-canvas",axes);};
-window.toggleAverage=()=>{
+window.toggleAverage=async()=>{
   S.showAverage=!S.showAverage;
   const btn=$id("avg-toggle-btn");
-  const avgPos=S.showAverage?getStoredAvg():null;
+  if(S.showAverage&&!S.avgData){
+    if(btn){btn.textContent="LOADING…";btn.style.opacity=".6";}
+    try{
+      const r=await fetch("/api/results");
+      if(r.ok)S.avgData=await r.json();
+      else S.showAverage=false;
+    }catch(e){S.showAverage=false;}
+    if(btn)btn.style.opacity="1";
+    if(!S.showAverage){
+      if(btn){btn.textContent="OVERALL AVERAGE ✦";}
+      return;
+    }
+  }
   if(btn){
-    btn.textContent=S.showAverage?"HIDE AVG":"OVERALL AVERAGE ✦";
+    btn.textContent=S.showAverage?"HIDE AVG ✦":"OVERALL AVERAGE ✦";
     btn.style.borderColor=S.showAverage?C.mint:C.border;
     btn.style.color=S.showAverage?C.mint:C.text3;
     btn.style.background=S.showAverage?"rgba(60,255,208,.08)":"transparent";
   }
-  // update disclaimer line
-  const compass=btn?btn.closest('[style]')?.querySelector('p[style*="average"]'):null;
   const canvasWrap=$id("intro-compass")?.parentElement;
   if(canvasWrap){
-    let disc=canvasWrap.querySelector('.avg-disc');
+    // Disclaimer
+    let disc=canvasWrap.querySelector(".avg-disc");
     if(S.showAverage&&!disc){
-      disc=document.createElement('p');
-      disc.className='avg-disc';
+      disc=document.createElement("p");disc.className="avg-disc";
       disc.style.cssText=`font-family:'Space Mono',monospace;font-size:10px;color:${C.text3};text-align:center;margin-top:8px;line-height:1.6;letter-spacing:.04em`;
-      disc.textContent='* This is the average result over time. Data only correlates to final results. NO PERSONAL DATA is stored.';
+      disc.textContent="* Average result over time. Data only correlates to final results. NO PERSONAL DATA is stored.";
       canvasWrap.appendChild(disc);
-    } else if(!S.showAverage&&disc){
-      disc.remove();
-    }
+    }else if(!S.showAverage&&disc)disc.remove();
+    // Stats row
+    let stats=canvasWrap.querySelector(".avg-stats");
+    if(S.showAverage&&S.avgData){
+      const top=S.avgData.top3||[];const total=S.avgData.total||0;
+      if(!stats){
+        stats=document.createElement("div");stats.className="avg-stats";
+        stats.style.cssText=`display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding-top:10px;border-top:1px solid ${C.border}`;
+        const discEl=canvasWrap.querySelector(".avg-disc");
+        canvasWrap.insertBefore(stats,discEl||null);
+      }
+      const chips=top.map((t,i)=>{
+        const party=PARTIES.find(p=>p.abbr===t.abbr);
+        return`<span style="font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.06em;font-weight:700;color:${i===0?C.mint:C.text2}">#${i+1} ${t.abbr}${party?` <span style="font-weight:400;color:${C.text3};font-size:10px">${party.name}</span>`:""}</span>`;
+      }).join(`<span style="color:${C.border};margin:0 6px">·</span>`);
+      stats.innerHTML=`<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">${chips}</div><span style="font-family:'Space Mono',monospace;font-size:10px;color:${C.text3};letter-spacing:.06em;white-space:nowrap">${total.toLocaleString()} results</span>`;
+    }else if(!S.showAverage&&stats)stats.remove();
   }
   const cv=$id("intro-compass");
   if(cv){
     const w=cv.parentElement.offsetWidth-32;
+    const avgPos=S.showAverage&&S.avgData?computeAvgPos(S.avgData.p1):null;
     drawCompass("intro-compass",{},w,Math.round(w*.7),avgPos);
   }
 };

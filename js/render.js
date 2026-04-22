@@ -142,8 +142,8 @@ function headerHTML(){
   return`<div style="position:sticky;top:0;z-index:50;background:${C.canvas}">
 <div class="tick-bar">
 <span class="tick-tag tick-live" id="tick-tag">LIVE</span>
-<span class="tick-text" id="tick-text" style="font-size:12px;color:${C.text2};flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><a id="tick-link" href="#" target="_blank" rel="noopener" style="color:inherit;text-decoration:none">Loading...</a></span>
-<span style="${mono};font-size:12px;color:${C.text3};flex-shrink:0;letter-spacing:.08em;white-space:nowrap">20 APR 2026</span>
+<span class="tick-text" id="tick-text" style="font-size:12px;color:#000;font-weight:600;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><a id="tick-link" href="#" target="_blank" rel="noopener" style="color:inherit;text-decoration:none">Loading...</a></span>
+<span style="${mono};font-size:12px;color:rgba(0,0,0,0.55);flex-shrink:0;letter-spacing:.08em;white-space:nowrap">22 APR 2026</span>
 </div>
 <nav class="site-nav">
 <button onclick="go('intro')" style="${disp};font-size:24px;color:${C.text1};background:none;border:none;cursor:pointer;letter-spacing:.06em;padding:0;line-height:1">TILT<span style="color:${C.mint}">.</span></button>
@@ -257,7 +257,7 @@ function renderIntro(){
     if(cv){
       const w=cv.parentElement.offsetWidth-32;
       cv.width=w;cv.height=Math.round(w*.7);
-      const avgPos=S.showAverage?getStoredAvg():null;
+      const avgPos=S.showAverage&&S.avgData?computeAvgPos(S.avgData.p1):null;
       drawCompass("intro-compass",{},w,Math.round(w*.7),avgPos);
       if(S.showAverage){
         const btn=$id("avg-toggle-btn");
