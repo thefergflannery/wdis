@@ -1,6 +1,11 @@
-const BUILD_VERSION="v1.3";
+const BUILD_VERSION="v1.4";
 
 const CHANGELOG=[
+  {version:"v1.4",date:"8 May 2026",title:"Mid Quiz Mode",tag:"FEATURE",tagCol:"#3cffd0",items:[
+    "Mid mode added — 36 questions (2 per category, ~10 min), now the recommended starting point",
+    "Mode selector updated: Quick / Mid / Full on the intro screen",
+    "Mid questions chosen for axis variety within each category for a more balanced result",
+  ]},
   {version:"v1.3",date:"30 Apr 2026",title:"Changelog & Scoring Fixes",tag:"FEATURE",tagCol:"#3cffd0",items:[
     "What's New page — full build history now logged",
     "Build version shown in footer across all pages",
