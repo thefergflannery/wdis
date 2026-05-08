@@ -1,4 +1,5 @@
-let S={phase:"intro",cat:0,answers:{},dark:true,showMinor:true,mode:"full",shuffledQS:null,shuffledCATS:null,hideCompass:false,showAverage:false,mobileCompassOpen:false,quizStartTime:null,pageStartTime:Date.now()};
+let S={phase:"intro",cat:0,answers:{},dark:true,showMinor:true,mode:"full",shuffledQS:null,shuffledCATS:null,hideCompass:false,showAverage:false,mobileCompassOpen:false,quizStartTime:null,catStartTime:null,pageStartTime:Date.now(),surveyVote:null,surveyData:null};
+try{const sv=localStorage.getItem('tilt_survey_gov');if(sv!==null&&['-2','-1','0','1','2'].includes(sv))S.surveyVote=Number(sv);}catch(e){}
 
 // PostHog wrapper — safe no-op if key not yet configured
 function track(event,props){
@@ -19,7 +20,7 @@ function shuffle(arr){
 }
 
 function buildShuffledQS(mode){
-  const base=mode==="quick"?QS.filter(q=>QUICK_IDS.has(q.id)):[...QS];
+  const base=mode==="quick"?QS.filter(q=>QUICK_IDS.has(q.id)):mode==="mid"?QS.filter(q=>MID_IDS.has(q.id)):[...QS];
   const cats=shuffle([...CATS]);
   S.shuffledCATS=cats;
   const byCat={};
@@ -27,18 +28,37 @@ function buildShuffledQS(mode){
   return cats.flatMap(c=>byCat[c]?shuffle(byCat[c]):[]);
 }
 
-function activeQS(){return S.shuffledQS||(S.mode==="quick"?QS.filter(q=>QUICK_IDS.has(q.id)):QS);}
+function activeQS(){return S.shuffledQS||(S.mode==="quick"?QS.filter(q=>QUICK_IDS.has(q.id)):S.mode==="mid"?QS.filter(q=>MID_IDS.has(q.id)):QS);}
 function activeCATS(){return S.shuffledCATS||CATS;}
 
 function $id(id){return document.getElementById(id)}
 
-let tickIdx=0,tickTimer=null;
+let tickIdx=0,tickTimer=null,tickData=[];
+
+const SOURCE_TICKER_MAP={
+  'RTÉ Politics':  {tag:'RTÉ POLITICS', cls:'tick-pol'},
+  'RTÉ News':      {tag:'RTÉ NEWS',     cls:'tick-live'},
+  'The Journal':   {tag:'THE JOURNAL',  cls:'tick-eco'},
+  'Irish Examiner':{tag:'EXAMINER',     cls:'tick-live'},
+  'Newstalk':      {tag:'NEWSTALK',     cls:'tick-pol'},
+};
+
+window.updateTickerData=function(items){
+  if(!items||!items.length)return;
+  tickData=items.map(item=>{
+    const m=SOURCE_TICKER_MAP[item.source]||{tag:'NEWS',cls:'tick-pol'};
+    return{cls:m.cls,tag:m.tag,text:item.title,url:item.link};
+  });
+  tickIdx=0;
+  startTicker();
+};
 
 function startTicker(){
   if(tickTimer)clearInterval(tickTimer);
+  if(!tickData.length)return;
   function show(){
     const tt=$id("tick-tag"),tx=$id("tick-text"),tl=$id("tick-link");if(!tt||!tx)return;
-    const it=TICKS[tickIdx];
+    const it=tickData[tickIdx%tickData.length];
     tt.textContent=it.tag;tt.className="tick-tag "+it.cls;
     tx.style.opacity=1;
     if(tl){tl.textContent=it.text;tl.href=it.url||"#";}
@@ -48,7 +68,7 @@ function startTicker(){
   tickTimer=setInterval(()=>{
     const tx=$id("tick-text");if(!tx)return;
     tx.style.opacity=0;
-    setTimeout(()=>{tickIdx=(tickIdx+1)%TICKS.length;show();},350);
+    setTimeout(()=>{tickIdx=(tickIdx+1)%tickData.length;show();},350);
   },5000);
 }
 
@@ -126,16 +146,26 @@ window.go=p=>{
 };
 window.startQuiz=mode=>{
   trackPageLeave("quiz");
-  S.mode=mode;S.answers={};S.cat=0;S.phase="quiz";S.quizStartTime=Date.now();
+  S.mode=mode;S.answers={};S.cat=0;S.phase="quiz";S.quizStartTime=Date.now();S.catStartTime=Date.now();
   S.shuffledQS=buildShuffledQS(mode);
   track('quiz_started',{mode,total_questions:S.shuffledQS.length});
   render();
 };
-window.setCat=i=>{S.cat=i;render();};
+window.setCat=i=>{
+  if(S.catStartTime&&i!==S.cat){
+    const secs=Math.round((Date.now()-S.catStartTime)/1000);
+    track('category_time',{category:activeCATS()[S.cat],cat_index:S.cat,duration_seconds:secs,nav:'tab'});
+    S.catStartTime=Date.now();
+  }
+  S.cat=i;render();
+};
 window.prevCat=()=>{if(S.cat>0){S.cat--;render();}};
 window.nextCat=()=>{
   const catQs=activeQS().filter(q=>q.cat===activeCATS()[S.cat]);
   if(!catQs.every(q=>S.answers[q.id]!==undefined))return;
+  const catSecs=S.catStartTime?Math.round((Date.now()-S.catStartTime)/1000):null;
+  track('category_completed',{category:activeCATS()[S.cat],cat_index:S.cat,duration_seconds:catSecs,nav:'next'});
+  S.catStartTime=Date.now();
   if(S.cat<activeCATS().length-1){S.cat++;render();}else go("results");
 };
 window.setAns=(id,v)=>{
@@ -359,8 +389,57 @@ function render(){
   if(S.phase==="intro")renderIntro();
   else if(S.phase==="quiz")renderQuiz();
   else if(S.phase==="guide")renderGuide();
+  else if(S.phase==="changelog")renderChangelog();
   else renderResults();
 }
+
+function updateSurveyDOM(){
+  const legend=$id('survey-legend');if(legend)legend.innerHTML=surveyLegendHTML();
+  const conf=$id('survey-confirm');if(conf&&S.surveyVote!==null)conf.style.display='block';
+  const btnRow=$id('survey-btn-row');
+  if(btnRow&&S.surveyVote!==null){
+    btnRow.querySelectorAll('button').forEach((btn,i)=>{
+      const v=[-2,-1,0,1,2][i];const isSel=S.surveyVote===v;
+      if(!isSel){btn.style.opacity='.3';btn.style.pointerEvents='none';}
+      else{btn.className=v<0?'tap-btn neg':v>0?'tap-btn pos':'tap-btn neu';}
+    });
+  }
+  requestAnimationFrame(()=>{
+    const cv=$id('survey-chart');
+    if(cv){const w=cv.parentElement.offsetWidth;cv.width=w;cv.height=w;drawSurveyChart('survey-chart');}
+  });
+}
+
+async function loadSurvey(){
+  try{
+    const r=await fetch('/api/survey');
+    if(r.ok){S.surveyData=await r.json();updateSurveyDOM();}
+  }catch(e){}
+}
+
+window.castSurveyVote=async(v)=>{
+  if(S.surveyVote!==null)return;
+  S.surveyVote=v;
+  if(!S.surveyData)S.surveyData={total:0,counts:{'-2':0,'-1':0,'0':0,'1':0,'2':0}};
+  S.surveyData.counts[String(v)]=(S.surveyData.counts[String(v)]||0)+1;
+  S.surveyData.total=(S.surveyData.total||0)+1;
+  try{localStorage.setItem('tilt_survey_gov',String(v));}catch(e){}
+  updateSurveyDOM();
+  track('survey_voted',{question:'gov_approval',vote:v});
+  try{
+    await fetch('/api/survey',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({vote:v})});
+  }catch(e){}
+};
+
+window.addEventListener('beforeunload',()=>{
+  if(S.phase==='quiz'){
+    const answered=Object.keys(S.answers).length;
+    const total=activeQS().length;
+    track('quiz_abandoned',{answered,total,pct_complete:Math.round((answered/total)*100),mode:S.mode,cat_index:S.cat});
+  }
+  const secs=Math.round((Date.now()-S.pageStartTime)/1000);
+  track('session_end',{phase:S.phase,total_session_seconds:secs});
+});
 
 render();
 track('page_view',{phase:'intro'});

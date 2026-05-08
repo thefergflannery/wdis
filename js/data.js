@@ -1,3 +1,34 @@
+const BUILD_VERSION="v1.3";
+
+const CHANGELOG=[
+  {version:"v1.3",date:"30 Apr 2026",title:"Changelog & Scoring Fixes",tag:"FEATURE",tagCol:"#3cffd0",items:[
+    "What's New page — full build history now logged",
+    "Build version shown in footer across all pages",
+    "Scoring matrix recalibrated — additional question granularity across new categories now correctly weighted in party matching and compass position",
+  ]},
+  {version:"v1.2",date:"28 Apr 2026",title:"Answers Review",tag:"UPDATE",tagCol:"#5200ff",items:[
+    "Answers review section on results page — see every question and your response",
+    "Compact footer added to quiz view",
+  ]},
+  {version:"v1.1",date:"25 Apr 2026",title:"UX & Mobile Polish",tag:"UPDATE",tagCol:"#5200ff",items:[
+    "Lean hero redesign on results page — large label, sub-label, share button",
+    "Share results — copy or share your result directly from the results page",
+    "Mobile layout improvements — full-screen results sheet, compass FAB",
+    "Progress pill added to nav bar — live answer count and percentage",
+    "Typography refinements across quiz and results views",
+    "News ticker added to homepage with rotating Irish political headlines",
+  ]},
+  {version:"v1.0",date:"21 Apr 2026",title:"Launch",tag:"LAUNCH",tagCol:"#1a7a3c",items:[
+    "72 questions across 18 Irish policy categories",
+    "20 parties mapped across 19 policy axes",
+    "Live political compass — party dots update as you answer",
+    "Quick quiz mode — 18 key questions for a fast result",
+    "Dark/light theme toggle",
+    "Party matching algorithm — ranked by average axis distance",
+    "Results page — lean label, compass, top 5 cards, all 20 parties ranked",
+  ]},
+];
+
 const TICKS=[
   {cls:"tick-live",tag:"LIVE",text:"Fuel protests ease - Whitegate refinery Cork back online after €755m govt relief package",url:"https://www.rte.ie/news/ireland/"},
   {cls:"tick-pol",tag:"POLITICS",text:"SF no-confidence motion defeated 92–78 · Coalition FF/FG + independents survives",url:"https://www.rte.ie/news/politics/"},
@@ -114,6 +145,8 @@ const QS=[
 ];
 
 const QUICK_IDS=new Set([1,42,45,5,9,19,17,39,60,63,57,15,40,21,25,53,54,34]);
+// Mid mode: 2 questions per category (36 total), chosen for axis variety within each category
+const MID_IDS=new Set([1,2,42,43,45,47,5,7,9,10,19,20,17,38,23,71,60,61,63,64,12,57,15,16,13,40,21,28,25,35,48,49,33,56,34,14]);
 
 const VLABELS={"-2":"Strongly disagree","-1":"Disagree","0":"Neutral","1":"Agree","2":"Strongly agree"};
 const BLABELS={"-2":"Strongly Disagree","-1":"Disagree","0":"Neutral","1":"Agree","2":"Strongly Agree"};

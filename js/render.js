@@ -106,9 +106,8 @@ function newsGridHTML(){
 <div style="flex:1;background:${C.border};border-radius:6px;opacity:.45;animation:tilt-pulse 1.4s ease-in-out infinite .15s"></div>
 <div style="width:90px;height:12px;background:${C.border};border-radius:6px;opacity:.35;animation:tilt-pulse 1.4s ease-in-out infinite .3s"></div>
 </div>`;
-  return`<div style="display:flex;align-items:baseline;justify-content:space-between;gap:16px;margin-bottom:20px;flex-wrap:wrap">
-<h2 style="${disp};font-size:clamp(22px,3.5vw,36px);color:${C.text1};letter-spacing:.04em;margin:0;line-height:1">LATEST IRISH POLITICAL NEWS</h2>
-<span id="news-updated" style="${mono};font-size:10px;color:${C.text3};letter-spacing:.06em;flex-shrink:0"></span>
+  return`<div style="margin-bottom:20px">
+<h2 style="${disp};font-size:clamp(22px,3.5vw,36px);color:${C.text1};letter-spacing:.04em;margin:0;line-height:1">LATEST IRISH NEWS</h2>
 </div>
 <div class="news-grid" id="news-grid-dynamic">${skeleton}${skeleton}${skeleton}</div>`;
 }
@@ -127,15 +126,12 @@ const SOURCE_META={
 
 function newsCardHTML(item){
   const meta=SOURCE_META[item.source]||{tag:escHtml(item.source||'NEWS'),bg:C.border,fg:C.text1};
-  const _d=item.pubDate?new Date(item.pubDate):null;
-  const date=_d&&!isNaN(_d)?_d.toLocaleDateString('en-IE',{day:'numeric',month:'short',year:'numeric'}):'—';
   let safeLink='#';
   try{const u=new URL(item.link);if(u.protocol==='https:'||u.protocol==='http:')safeLink=item.link;}catch(e){}
   return`<a href="${escHtml(safeLink)}" target="_blank" rel="noopener noreferrer" style="${sans};display:flex;flex-direction:column;gap:12px;background:${C.surface};border:1px solid ${C.border};border-top:3px solid ${meta.bg};border-radius:20px;padding:20px 22px;text-decoration:none;transition:border-color .2s" onmouseover="this.style.borderColor='${C.text3}';this.style.borderTopColor='${meta.bg}'" onmouseout="this.style.borderColor='${C.border}';this.style.borderTopColor='${meta.bg}'">
 <span style="${mono};font-size:10px;font-weight:700;padding:3px 10px;border-radius:6px;background:${meta.bg};color:${meta.fg};letter-spacing:.1em;align-self:flex-start">${escHtml(meta.tag)}</span>
 <p style="font-size:14px;font-weight:600;color:${C.text1};line-height:1.55;margin:0;flex:1">${escHtml(item.title)}</p>
-<div style="display:flex;justify-content:space-between;align-items:center">
-<span style="${mono};font-size:11px;color:${C.text3};letter-spacing:.06em">${escHtml(date)}</span>
+<div style="display:flex;justify-content:flex-end;align-items:center">
 <span style="${mono};font-size:11px;color:${C.text3};letter-spacing:.06em">READ MORE →</span>
 </div></a>`;
 }
@@ -146,6 +142,17 @@ function tickFallbackItems(){
   return TICKS.map(t=>{const tc=tagMap[t.cls]||{bg:C.border,fg:C.text1};return{title:t.text,link:t.url||'#',pubDate:'22 Apr 2026',source:'_static',_meta:{tag:t.tag,bg:tc.bg,fg:tc.fg}};});
 }
 
+function recentOnly(items){
+  const cutoff=new Date();
+  cutoff.setDate(cutoff.getDate()-1);
+  cutoff.setHours(0,0,0,0);
+  return items.filter(item=>{
+    if(!item.pubDate)return false;
+    const d=new Date(item.pubDate);
+    return !isNaN(d)&&d>=cutoff;
+  });
+}
+
 async function loadNewsGrid(){
   const box=document.getElementById('news-grid-dynamic');
   if(!box)return;
@@ -153,38 +160,19 @@ async function loadNewsGrid(){
   let liveItems=[];
   try{
     const r=await fetch('/api/news',{cache:'no-store'});
-    if(r.ok){const d=await r.json();liveItems=d.items||[];}
+    if(r.ok){
+      const d=await r.json();
+      liveItems=recentOnly(d.items||[]);
+      if(liveItems.length&&typeof updateTickerData==='function')updateTickerData(liveItems);
+    }
   }catch(e){/* fall through */}
 
-  // Pad to exactly 3 with static fallback items if live feed is short
-  const fallbacks=tickFallbackItems();
-  const combined=[...liveItems];
-  for(const f of fallbacks){
-    if(combined.length>=3)break;
-    combined.push(f);
+  if(!liveItems.length){
+    box.innerHTML=`<p style="${mono};font-size:12px;color:${C.text3};letter-spacing:.06em;grid-column:1/-1;padding:20px 0">No recent news available.</p>`;
+    return;
   }
 
-  const cards=combined.slice(0,3).map(item=>{
-    if(item._meta){
-      // Static fallback card — render inline with pre-computed meta
-      let safeLink='#';
-      try{const u=new URL(item.link);if(u.protocol==='https:'||u.protocol==='http:')safeLink=item.link;}catch(e){}
-      return`<a href="${escHtml(safeLink)}" target="_blank" rel="noopener noreferrer" style="${sans};display:flex;flex-direction:column;gap:12px;background:${C.surface};border:1px solid ${C.border};border-radius:20px;padding:20px 22px;text-decoration:none;transition:border-color .2s" onmouseover="this.style.borderColor='${C.text3}'" onmouseout="this.style.borderColor='${C.border}'">
-<span style="${mono};font-size:10px;font-weight:700;padding:3px 10px;border-radius:6px;background:${item._meta.bg};color:${item._meta.fg};letter-spacing:.1em;align-self:flex-start">${escHtml(item._meta.tag)}</span>
-<p style="font-size:14px;font-weight:600;color:${C.text1};line-height:1.55;margin:0;flex:1">${escHtml(item.title)}</p>
-<div style="display:flex;justify-content:space-between;align-items:center">
-<span style="${mono};font-size:11px;color:${C.text3};letter-spacing:.06em">${escHtml(item.pubDate)}</span>
-<span style="${mono};font-size:11px;color:${C.text3};letter-spacing:.06em">READ MORE →</span>
-</div></a>`;
-    }
-    return newsCardHTML(item);
-  });
-
-  box.innerHTML=cards.join('');
-  if(liveItems.length>0){
-    const upd=document.getElementById('news-updated');
-    if(upd)upd.textContent='Updated '+new Date().toLocaleTimeString('en-IE',{hour:'2-digit',minute:'2-digit'});
-  }
+  box.innerHTML=liveItems.slice(0,6).map(newsCardHTML).join('');
 }
 
 function legendHTML(){
@@ -212,7 +200,6 @@ function headerHTML(quizDone, quizTotal){
 <div class="tick-bar">
 <span class="tick-tag tick-live" id="tick-tag">LIVE</span>
 <span class="tick-text" id="tick-text" style="font-size:12px;color:#000;font-weight:600;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><a id="tick-link" href="#" target="_blank" rel="noopener" style="color:inherit;text-decoration:none">Loading...</a></span>
-<span style="${mono};font-size:12px;color:rgba(0,0,0,0.55);flex-shrink:0;letter-spacing:.08em;white-space:nowrap">22 APR 2026</span>
 </div>
 <nav class="site-nav" style="justify-content:space-between">
   <div style="display:flex;align-items:baseline;gap:14px;min-width:0;overflow:hidden">
@@ -254,15 +241,21 @@ function mobileSheetHTML(axes,scored,hasAny,done,total){
 
 function footerHTML(){
   return`<footer style="background:${C.mint};margin-top:64px;padding:32px 40px 48px;border-radius:20px 20px 0 0">
-<p style="${sans};font-size:13px;color:#000;line-height:1.8;max-width:720px">
-Created not for profit and for educational purposes by <a href="https://fergflannery.com" target="_blank" rel="noopener" style="color:#000;text-decoration:underline;text-underline-offset:3px">Ferg Flannery</a> · fergflannery.com. All information is gathered from publicly available sources.
-</p>
-<p style="${sans};font-size:12px;color:rgba(0,0,0,0.6);line-height:1.8;max-width:720px;margin-top:8px">
-This tool does not guarantee the accuracy, completeness, or timeliness of the data, and we are not liable for any decisions made based on this information. Users are encouraged to verify critical information directly with the original source.
-</p>
+<div style="display:flex;align-items:flex-start;gap:20px;max-width:760px">
+  <img src="/images/logo/TILT-1.svg" alt="" aria-hidden="true" style="flex-shrink:0;align-self:stretch;width:auto;object-fit:contain;opacity:.12">
+  <div>
+    <p style="${sans};font-size:13px;color:#000;line-height:1.8">
+    Created not for profit and for educational purposes by <a href="https://fergflannery.com" target="_blank" rel="noopener" style="color:#000;text-decoration:underline;text-underline-offset:3px">Ferg Flannery</a> · fergflannery.com. All information is gathered from publicly available sources.
+    </p>
+    <p style="${sans};font-size:12px;color:rgba(0,0,0,0.6);line-height:1.8;margin-top:8px">
+    This tool does not guarantee the accuracy, completeness, or timeliness of the data, and we are not liable for any decisions made based on this information. Users are encouraged to verify critical information directly with the original source.
+    </p>
+  </div>
+</div>
 <div style="margin-top:20px;padding-top:16px;border-top:1px solid rgba(0,0,0,.12);display:flex;align-items:center;gap:16px;flex-wrap:wrap">
   <a href="mailto:hello@fergflannery.com?subject=TILT%20Feature%20Request&body=Hi%2C%20I%20have%20a%20feature%20request%20for%20TILT%3A%0A%0A" style="${mono};font-size:11px;font-weight:700;color:#000;text-decoration:none;letter-spacing:.08em;padding:8px 16px;border:1px solid rgba(0,0,0,.25);border-radius:20px;transition:background .15s" onmouseover="this.style.background='rgba(0,0,0,.07)'" onmouseout="this.style.background='transparent'">✉ SUGGEST A FEATURE</a>
-  <span style="${mono};font-size:10px;color:rgba(0,0,0,.4);letter-spacing:.06em">TILT · APRIL 2026</span>
+  <button onclick="go('changelog')" style="${mono};font-size:11px;font-weight:700;color:#000;background:transparent;border:1px solid rgba(0,0,0,.25);border-radius:20px;padding:8px 16px;cursor:pointer;letter-spacing:.08em;transition:background .15s" onmouseover="this.style.background='rgba(0,0,0,.07)'" onmouseout="this.style.background='transparent'">✦ WHAT'S NEW</button>
+  <span style="${mono};font-size:10px;color:rgba(0,0,0,.4);letter-spacing:.06em">TILT · ${BUILD_VERSION} · APRIL 2026</span>
 </div>
 </footer>`;
 }
@@ -270,8 +263,94 @@ This tool does not guarantee the accuracy, completeness, or timeliness of the da
 // Compact quiz-page footer — one line, non-intrusive
 function quizFooterHTML(){
   return`<div style="border-top:1px solid ${C.border};margin-top:40px;padding:14px 0;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
-  <span style="${mono};font-size:10px;color:${C.text3};letter-spacing:.08em">TILT · Not for profit · Educational purposes · April 2026</span>
-  <a href="mailto:hello@fergflannery.com?subject=TILT%20Feature%20Request&body=Hi%2C%20I%20have%20a%20feature%20request%20for%20TILT%3A%0A%0A" style="${mono};font-size:10px;color:${C.text3};text-decoration:none;letter-spacing:.08em;transition:color .15s" onmouseover="this.style.color='${C.text2}'" onmouseout="this.style.color='${C.text3}'">✉ SUGGEST A FEATURE</a>
+  <span style="${mono};font-size:10px;color:${C.text3};letter-spacing:.08em">TILT · ${BUILD_VERSION} · Not for profit · Educational purposes</span>
+  <div style="display:flex;align-items:center;gap:16px">
+    <button onclick="go('changelog')" style="${mono};font-size:10px;color:${C.text3};background:transparent;border:none;cursor:pointer;letter-spacing:.08em;padding:0;transition:color .15s" onmouseover="this.style.color='${C.text2}'" onmouseout="this.style.color='${C.text3}'">✦ WHAT'S NEW</button>
+    <a href="mailto:hello@fergflannery.com?subject=TILT%20Feature%20Request&body=Hi%2C%20I%20have%20a%20feature%20request%20for%20TILT%3A%0A%0A" style="${mono};font-size:10px;color:${C.text3};text-decoration:none;letter-spacing:.08em;transition:color .15s" onmouseover="this.style.color='${C.text2}'" onmouseout="this.style.color='${C.text3}'">✉ SUGGEST A FEATURE</a>
+  </div>
+</div>`;
+}
+
+/* ── SURVEY ──────────────────────────────── */
+const SURVEY_OPTS=[
+  {v:-2, label:'Strongly Disagree', btn:'STR.<br>DISAGREE', col:'#3cffd0'},
+  {v:-1, label:'Disagree',          btn:'DISAGREE',         col:'#1fa882'},
+  {v: 0, label:'Neutral',           btn:'NEUTRAL',          col:'#666666'},
+  {v: 1, label:'Agree',             btn:'AGREE',            col:'#7c3aff'},
+  {v: 2, label:'Strongly Agree',    btn:'STR.<br>AGREE',    col:'#5200ff'},
+];
+
+function drawSurveyChart(canvasId){
+  const cv=document.getElementById(canvasId);if(!cv)return;
+  const ctx=cv.getContext('2d');
+  const W=cv.width,H=cv.height,cx=W/2,cy=H/2;
+  ctx.clearRect(0,0,W,H);
+  const R=Math.min(W,H)*0.42,ri=R*0.56;
+  const data=S.surveyData,total=data?data.total:0;
+  if(total===0){
+    // Empty ring
+    ctx.beginPath();ctx.arc(cx,cy,R,0,Math.PI*2);ctx.arc(cx,cy,ri,0,Math.PI*2,true);
+    ctx.fillStyle='#2a2a2a';ctx.fill('evenodd');
+    ctx.fillStyle='#555';ctx.font=`11px 'Space Mono',monospace`;
+    ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('NO VOTES YET',cx,cy);
+    return;
+  }
+  // Segments
+  let angle=-Math.PI/2;
+  const TAU=Math.PI*2,gap=0.022;
+  SURVEY_OPTS.forEach(o=>{
+    const n=data.counts[String(o.v)]||0;if(!n)return;
+    const sweep=(n/total)*TAU-gap;
+    ctx.beginPath();
+    ctx.arc(cx,cy,R,angle,angle+sweep);
+    ctx.arc(cx,cy,ri,angle+sweep,angle,true);
+    ctx.closePath();ctx.fillStyle=o.col;ctx.fill();
+    angle+=(n/total)*TAU;
+  });
+  // Center text
+  ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillStyle='#ffffff';
+  ctx.font=`700 ${Math.round(R*0.55)}px 'Anton',Impact,sans-serif`;
+  ctx.fillText(total.toLocaleString(),cx,cy-R*0.1);
+  ctx.fillStyle='#666';ctx.font=`${Math.round(R*0.17)}px 'Space Mono',monospace`;
+  ctx.fillText('VOTES',cx,cy+R*0.2);
+}
+
+function surveyLegendHTML(){
+  const data=S.surveyData,total=data?data.total:0;
+  return SURVEY_OPTS.map(o=>{
+    const n=data?data.counts[String(o.v)]||0:0;
+    const p=total>0?Math.round(n/total*100):0;
+    const isMine=S.surveyVote===o.v;
+    return`<div style="display:flex;align-items:center;gap:10px;padding:6px 0">
+  <span style="width:11px;height:11px;border-radius:3px;flex-shrink:0;background:${o.col};${isMine?`box-shadow:0 0 0 2px ${C.canvas},0 0 0 3px ${o.col}`:''}"></span>
+  <span style="${sans};font-size:13px;color:${isMine?C.text1:C.text2};flex:1">${o.label}${isMine?` <span style="${mono};font-size:9px;color:${o.col};letter-spacing:.07em;font-weight:700">← YOUR VOTE</span>`:''}</span>
+  <span style="${mono};font-size:13px;font-weight:700;color:${p>0?o.col:C.text3};min-width:36px;text-align:right">${p}%</span>
+</div>`;
+  }).join('')+`<div style="margin-top:8px;padding-top:10px;border-top:1px solid ${C.border};${mono};font-size:10px;color:${C.text3};letter-spacing:.06em">${total>0?total.toLocaleString().toUpperCase()+(total===1?' VOTE':' VOTES'):'NO VOTES YET — BE THE FIRST'}</div>`;
+}
+
+function surveyHTML(){
+  const voted=S.surveyVote!==null;
+  const btnRow=SURVEY_OPTS.map(o=>{
+    const isSel=S.surveyVote===o.v;
+    const cls=isSel?(o.v<0?'tap-btn neg':o.v>0?'tap-btn pos':'tap-btn neu'):'tap-btn';
+    const dim=voted&&!isSel?'opacity:.3;pointer-events:none':'';
+    return`<button class="${cls}" onclick="castSurveyVote(${o.v})" style="${dim}">${o.btn}</button>`;
+  }).join('');
+  return`<div style="margin:56px 0 0">
+  <div style="${label};margin-bottom:20px">QUICK POLL</div>
+  <div style="background:${C.surface};border:1px solid ${C.border};border-radius:24px;padding:32px 28px">
+    <h3 style="${disp};font-size:clamp(20px,3vw,32px);color:${C.text1};letter-spacing:.03em;line-height:1.1;margin-bottom:28px">DO YOU THINK THE CURRENT GOVERNMENT IS DOING A GOOD JOB?</h3>
+    <div style="display:flex;gap:32px;align-items:center;margin-bottom:28px;flex-wrap:wrap">
+      <div id="survey-chart-wrap" style="flex-shrink:0;width:clamp(160px,30%,220px)">
+        <canvas id="survey-chart" style="width:100%;display:block"></canvas>
+      </div>
+      <div id="survey-legend" style="flex:1;min-width:200px">${surveyLegendHTML()}</div>
+    </div>
+    <div style="display:flex;gap:6px" id="survey-btn-row">${btnRow}</div>
+    <div id="survey-confirm" style="display:${voted?'block':'none'};${mono};font-size:11px;color:${C.mint};letter-spacing:.08em;margin-top:14px">✓ YOUR VOTE HAS BEEN RECORDED</div>
+  </div>
 </div>`;
 }
 
@@ -285,21 +364,26 @@ function renderIntro(){
     <div>
       <p style="${mono};font-size:12px;color:${C.mint};letter-spacing:.16em;text-transform:uppercase;margin-bottom:20px">Republic of Ireland · Political Compass · April 2026</p>
       <h1 class="hero-wordmark" style="${disp};font-size:clamp(72px,9vw,120px);line-height:.88;letter-spacing:-.02em;color:${C.text1};margin-bottom:16px">TILT<span style="color:${C.mint}">.</span></h1>
-      <p style="${mono};font-size:14px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:${C.text2};margin-bottom:10px">WHERE DO I CURRENTLY STAND?</p>
-      <p style="font-size:16px;color:${C.text2};line-height:1.6;margin-bottom:12px">A guide to your political leaning in Ireland.</p>
+      <p style="${mono};font-size:14px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:${C.text2};margin-bottom:16px">WHERE DO I CURRENTLY STAND?</p>
+      <p style="font-size:16px;color:${C.text2};line-height:1.6;margin-bottom:24px">A guide to your political leaning in Ireland.</p>
       <div style="background:${C.surface};border:1px solid ${C.mint};border-radius:12px;padding:12px 16px;margin-bottom:32px;font-size:13px;color:${C.text2};line-height:1.6">
         Not politically affiliated. Built to help you cut through the noise and map your own views against the policies parties actually stand for.
       </div>
       <div style="display:flex;gap:12px;flex-wrap:wrap">
-        <button onclick="startQuiz('quick')" style="flex:1;min-width:150px;background:${C.surface};border:1px solid ${C.border};border-radius:24px;padding:16px 24px;text-align:left;cursor:pointer;transition:all .15s" onmouseover="this.style.borderColor='${C.mint}'" onmouseout="this.style.borderColor='${C.border}'">
+        <button onclick="startQuiz('quick')" style="flex:1;min-width:140px;background:${C.surface};border:1px solid ${C.border};border-radius:24px;padding:16px 24px;text-align:left;cursor:pointer;transition:all .15s" onmouseover="this.style.borderColor='${C.mint}'" onmouseout="this.style.borderColor='${C.border}'">
           <div style="${disp};font-size:24px;color:${C.text1};letter-spacing:.04em;margin-bottom:4px">QUICK</div>
           <div style="${mono};font-size:11px;color:${C.text2};letter-spacing:.08em;margin-bottom:6px">18 QUESTIONS · ~5 MIN</div>
           <div style="font-size:12px;color:${C.text3}">One question per topic</div>
         </button>
-        <button onclick="startQuiz('full')" style="flex:1;min-width:150px;background:${C.mint};border:1px solid ${C.mint};border-radius:24px;padding:16px 24px;text-align:left;cursor:pointer;transition:all .15s" onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'">
-          <div style="${disp};font-size:24px;color:#000;letter-spacing:.04em;margin-bottom:4px">FULL</div>
-          <div style="${mono};font-size:11px;color:rgba(0,0,0,.7);letter-spacing:.08em;margin-bottom:6px">72 QUESTIONS · ~20 MIN</div>
-          <div style="font-size:12px;color:rgba(0,0,0,.6)">All topics — most accurate</div>
+        <button onclick="startQuiz('mid')" style="flex:1;min-width:140px;background:${C.mint};border:1px solid ${C.mint};border-radius:24px;padding:16px 24px;text-align:left;cursor:pointer;transition:all .15s" onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'">
+          <div style="${disp};font-size:24px;color:#000;letter-spacing:.04em;margin-bottom:4px">MID</div>
+          <div style="${mono};font-size:11px;color:rgba(0,0,0,.7);letter-spacing:.08em;margin-bottom:6px">36 QUESTIONS · ~10 MIN</div>
+          <div style="font-size:12px;color:rgba(0,0,0,.6)">Two per topic — recommended</div>
+        </button>
+        <button onclick="startQuiz('full')" style="flex:1;min-width:140px;background:${C.surface};border:1px solid ${C.border};border-radius:24px;padding:16px 24px;text-align:left;cursor:pointer;transition:all .15s" onmouseover="this.style.borderColor='${C.mint}'" onmouseout="this.style.borderColor='${C.border}'">
+          <div style="${disp};font-size:24px;color:${C.text1};letter-spacing:.04em;margin-bottom:4px">FULL</div>
+          <div style="${mono};font-size:11px;color:${C.text2};letter-spacing:.08em;margin-bottom:6px">72 QUESTIONS · ~20 MIN</div>
+          <div style="font-size:12px;color:${C.text3}">All topics — most accurate</div>
         </button>
       </div>
       <!-- Mobile-only compass toggle button -->
@@ -340,8 +424,11 @@ function renderIntro(){
     ${legendHTML()}
   </div>
 
+  <!-- SURVEY -->
+  ${surveyHTML()}
+
   <!-- UNDERSTANDING THE RESULTS -->
-  <div style="background:${C.mint};border-radius:20px;padding:28px 32px;margin:8px 0 0">
+  <div style="background:${C.mint};border-radius:20px;padding:28px 32px;margin:56px 0 0">
     <div style="display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap">
       <div>
         <div style="${mono};font-size:10px;font-weight:700;letter-spacing:.12em;color:rgba(0,0,0,.5);margin-bottom:8px;text-transform:uppercase">UNDERSTANDING THE RESULTS</div>
@@ -352,14 +439,14 @@ function renderIntro(){
   </div>
 
   <!-- NEWS GRID -->
-  <div style="padding-top:16px">
+  <div style="padding-top:56px">
     ${newsGridHTML()}
   </div>
 
   ${footerHTML()}
 </div>`;
   applyTheme();startTicker();
-  loadNewsGrid();
+  loadNewsGrid();loadSurvey();
   requestAnimationFrame(()=>{
     const cv=$id("intro-compass");
     if(cv){
@@ -372,6 +459,8 @@ function renderIntro(){
         if(btn){btn.style.borderColor=C.mint;btn.style.color=C.mint;btn.style.background='rgba(60,255,208,.08)';}
       }
     }
+    const sc=$id("survey-chart");
+    if(sc){const w=sc.parentElement.offsetWidth;sc.width=w;sc.height=w;drawSurveyChart("survey-chart");}
   });
 }
 
@@ -385,7 +474,7 @@ function renderQuiz(){
   const done=Object.keys(S.answers).length;
   const catDone=catQs.every(q=>S.answers[q.id]!==undefined);
   const hasAny=done>0;
-  const modeLbl=S.mode==="quick"?`<span style="${mono};font-size:11px;padding:3px 10px;border-radius:20px;background:rgba(240,165,0,.15);color:#f0a500;border:1px solid rgba(240,165,0,.3);letter-spacing:.08em;margin-left:10px">QUICK MODE</span>`:``;
+  const modeLbl=S.mode==="quick"?`<span style="${mono};font-size:11px;padding:3px 10px;border-radius:20px;background:rgba(240,165,0,.15);color:#f0a500;border:1px solid rgba(240,165,0,.3);letter-spacing:.08em;margin-left:10px">QUICK MODE</span>`:S.mode==="mid"?`<span style="${mono};font-size:11px;padding:3px 10px;border-radius:20px;background:rgba(60,255,208,.12);color:${C.mint};border:1px solid rgba(60,255,208,.3);letter-spacing:.08em;margin-left:10px">MID MODE</span>`:``;
 
   const catBtns=activeCATS().map((c,i)=>{
     const cqs=qs.filter(q=>q.cat===c);if(!cqs.length)return"";
@@ -740,4 +829,49 @@ ${posCard("Moderate","Mixed views across issues",C.text3,"A balanced mix of view
       drawCompass("guide-compass",hasResults?axes:{},w,Math.round(w*.65));
     }
   });
+}
+
+function renderChangelog(){
+  const hasResults=Object.keys(S.answers).length>0;
+  const tagStyle=(col)=>`${mono};font-size:9px;font-weight:700;padding:3px 9px;border-radius:6px;letter-spacing:.1em;background:${col}22;color:${col};border:1px solid ${col}44`;
+  const entries=CHANGELOG.map((entry,i)=>{
+    const isCurrent=i===0;
+    return`<div style="position:relative;padding-left:28px;margin-bottom:40px">
+  <div style="position:absolute;left:0;top:6px;width:10px;height:10px;border-radius:50%;background:${isCurrent?C.mint:C.border};border:2px solid ${isCurrent?C.mint:C.border};box-shadow:${isCurrent?`0 0 0 3px rgba(60,255,208,.15)`:''};flex-shrink:0"></div>
+  ${i<CHANGELOG.length-1?`<div style="position:absolute;left:4px;top:20px;width:1px;bottom:-28px;background:${C.border}"></div>`:""}
+  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px">
+    <span style="${disp};font-size:22px;color:${isCurrent?C.mint:C.text1};letter-spacing:.04em">${entry.version}</span>
+    <span style="${tagStyle(entry.tagCol)}">${entry.tag}</span>
+    <span style="${mono};font-size:10px;color:${C.text3};letter-spacing:.06em">${entry.date}</span>
+  </div>
+  <div style="${sans};font-size:16px;font-weight:600;color:${C.text2};margin-bottom:12px;letter-spacing:.01em">${entry.title}</div>
+  <ul style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:7px">
+    ${entry.items.map(item=>`<li style="display:flex;align-items:flex-start;gap:10px">
+      <span style="color:${isCurrent?C.mint:C.text3};font-size:12px;margin-top:3px;flex-shrink:0">▸</span>
+      <span style="font-size:13px;color:${C.text2};line-height:1.6">${item}</span>
+    </li>`).join("")}
+  </ul>
+</div>`;
+  }).join("");
+
+  $id("root").innerHTML=headerHTML()+`
+<div class="wrap" style="padding-bottom:80px">
+  <div style="padding:32px 0 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+    <button onclick="go('${hasResults?"results":"intro"}')" style="${mono};font-size:11px;font-weight:700;padding:10px 20px;border-radius:24px;border:1px solid ${C.border};background:transparent;color:${C.text2};cursor:pointer;letter-spacing:.06em">← ${hasResults?"BACK TO RESULTS":"BACK TO HOME"}</button>
+  </div>
+
+  <h1 style="${disp};font-size:clamp(40px,6vw,72px);line-height:.9;color:${C.text1};letter-spacing:.03em;margin-bottom:12px">WHAT'S<br><span style="color:${C.mint}">NEW.</span></h1>
+  <p style="font-size:15px;color:${C.text2};line-height:1.7;max-width:560px;margin-bottom:48px">Build history and design updates for TILT. Latest changes are at the top.</p>
+
+  <div style="max-width:600px">
+    ${entries}
+  </div>
+
+  <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:8px">
+    <button onclick="go('${hasResults?"results":"intro"}')" style="${mono};font-size:11px;font-weight:700;padding:12px 24px;border-radius:24px;border:1px solid ${C.border};background:transparent;color:${C.text2};cursor:pointer;letter-spacing:.06em">← ${hasResults?"BACK TO RESULTS":"BACK TO HOME"}</button>
+    ${!hasResults?`<button onclick="startQuiz('full')" style="${mono};font-size:11px;font-weight:700;padding:12px 24px;border-radius:24px;border:none;background:${C.mint};color:#000;cursor:pointer;letter-spacing:.06em">TAKE THE QUIZ →</button>`:""}
+  </div>
+  ${footerHTML()}
+</div>`;
+  applyTheme();startTicker();
 }
