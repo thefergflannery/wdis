@@ -1,37 +1,44 @@
-// Server-side RSS proxy — fetches Irish politics news feeds, returns sanitized JSON.
+// Server-side RSS/Atom proxy — fetches Irish politics news feeds, returns sanitized JSON.
 // Returns: { items: [{ title, link, pubDate, source }] }
-// Enforces max 2 items per source in final output to ensure variety.
 
 const https = require('https');
 const http = require('http');
 
 const FEEDS = [
-  { url: 'https://feeds.rte.ie/rtepolitics',                           source: 'RTÉ Politics' },
-  { url: 'https://feeds.rte.ie/rtenews/ireland',                       source: 'RTÉ News' },
-  { url: 'https://www.thejournal.ie/feed/',                            source: 'The Journal' },
-  { url: 'https://www.irishexaminer.com/feed/news/politics/',          source: 'Irish Examiner' },
-  { url: 'https://www.newstalk.com/news/politics/feed/',               source: 'Newstalk' },
-  { url: 'https://www.irishexaminer.com/feed/news/ireland/',           source: 'Irish Examiner' },
+  { url: 'https://www.irishtimes.com/arc/outboundfeeds/rss/category/politics/', source: 'Irish Times' },
+  { url: 'https://www.irishtimes.com/arc/outboundfeeds/rss/category/ireland/',  source: 'Irish Times' },
+  { url: 'https://www.irishexaminer.com/feed/569-Politics.xml',                 source: 'Irish Examiner' },
+  { url: 'https://www.newstalk.com/feed/',                                       source: 'Newstalk' },
+  { url: 'https://www.newstalk.com/news/feed/',                                  source: 'Newstalk' },
 ];
 
-const MAX_ITEMS_PER_FEED = 6;
-const MAX_PER_SOURCE = 2;
-const TIMEOUT_MS = 5000;
+const EXCLUDE_RE = /\b(premier league|champions league|europa league|all-ireland final draw|match report|full[- ]time score|box office|love island|celebrity big brother|x factor)\b/i;
+
+const MAX_ITEMS_PER_FEED = 8;
+const MAX_PER_SOURCE = 3;
+const TIMEOUT_MS = 6000;
+const MAX_REDIRECTS = 3;
 
 const ALLOWED_HOSTNAMES = new Set([
-  'rte.ie', 'www.rte.ie',
-  'thejournal.ie', 'www.thejournal.ie',
   'irishtimes.com', 'www.irishtimes.com',
-  'independent.ie', 'www.independent.ie',
   'irishexaminer.com', 'www.irishexaminer.com',
   'newstalk.com', 'www.newstalk.com',
+  'rte.ie', 'www.rte.ie',
+  'independent.ie', 'www.independent.ie',
   'breakingnews.ie', 'www.breakingnews.ie',
 ]);
 
-function fetchUrl(url) {
+function fetchUrl(url, redirectsLeft = MAX_REDIRECTS) {
   return new Promise((resolve, reject) => {
     const client = url.startsWith('https') ? https : http;
     const req = client.get(url, { timeout: TIMEOUT_MS }, (res) => {
+      if ((res.statusCode === 301 || res.statusCode === 302) && res.headers.location && redirectsLeft > 0) {
+        const next = res.headers.location.startsWith('http')
+          ? res.headers.location
+          : new URL(res.headers.location, url).href;
+        res.resume();
+        return fetchUrl(next, redirectsLeft - 1).then(resolve, reject);
+      }
       if (res.statusCode !== 200) {
         reject(new Error(`HTTP ${res.statusCode}`));
         return;
@@ -45,7 +52,8 @@ function fetchUrl(url) {
   });
 }
 
-function parseItems(xml, source) {
+// Parse standard RSS <item> blocks
+function parseRssItems(xml, source) {
   const items = [];
   const itemRe = /<item[^>]*>([\s\S]*?)<\/item>/gi;
   let match;
@@ -55,14 +63,43 @@ function parseItems(xml, source) {
     const link = extractTag(block, 'link') || extractAttr(block, 'link', 'href') || '';
     const pubDate = extractTag(block, 'pubDate') || extractTag(block, 'dc:date') || '';
     if (!title || !link) continue;
-    try {
-      const u = new URL(link);
-      const host = u.hostname.replace(/^www\./, '');
-      if (!ALLOWED_HOSTNAMES.has(u.hostname) && !ALLOWED_HOSTNAMES.has(host)) continue;
-    } catch { continue; }
+    if (EXCLUDE_RE.test(title)) continue;
+    if (!isAllowedLink(link)) continue;
     items.push({ title, link, pubDate, source });
   }
   return items;
+}
+
+// Parse Atom <entry> blocks (used by Irish Examiner)
+function parseAtomItems(xml, source) {
+  const items = [];
+  const entryRe = /<entry[^>]*>([\s\S]*?)<\/entry>/gi;
+  let match;
+  while ((match = entryRe.exec(xml)) !== null && items.length < MAX_ITEMS_PER_FEED) {
+    const block = match[1];
+    const title = stripTags(extractTag(block, 'title'));
+    const link = extractAttr(block, 'link', 'href') || extractTag(block, 'link') || '';
+    const pubDate = extractTag(block, 'published') || extractTag(block, 'updated') || '';
+    if (!title || !link) continue;
+    if (EXCLUDE_RE.test(title)) continue;
+    if (!isAllowedLink(link)) continue;
+    items.push({ title, link, pubDate, source });
+  }
+  return items;
+}
+
+function parseItems(xml, source) {
+  // Detect Atom by presence of <entry> tags
+  if (/<entry[\s>]/i.test(xml)) return parseAtomItems(xml, source);
+  return parseRssItems(xml, source);
+}
+
+function isAllowedLink(link) {
+  try {
+    const u = new URL(link);
+    const host = u.hostname.replace(/^www\./, '');
+    return ALLOWED_HOSTNAMES.has(u.hostname) || ALLOWED_HOSTNAMES.has(host);
+  } catch { return false; }
 }
 
 function extractTag(str, tag) {
@@ -83,7 +120,19 @@ function stripTags(str) {
     .replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'").trim();
 }
 
-// Pick up to `limit` items from the pool ensuring no source appears more than MAX_PER_SOURCE times.
+// Drop items older than yesterday (start of the day before today, UTC).
+function filterRecent(items) {
+  const cutoff = new Date();
+  cutoff.setUTCDate(cutoff.getUTCDate() - 1);
+  cutoff.setUTCHours(0, 0, 0, 0);
+  return items.filter(item => {
+    if (!item.pubDate) return false;
+    const d = new Date(item.pubDate);
+    return !isNaN(d) && d >= cutoff;
+  });
+}
+
+// Pick up to `limit` items ensuring no source appears more than MAX_PER_SOURCE times.
 function diversify(allItems, limit) {
   const sorted = [...allItems].sort((a, b) => {
     const da = a.pubDate ? new Date(a.pubDate) : 0;
@@ -104,7 +153,7 @@ function diversify(allItems, limit) {
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', 'same-origin');
-  res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate=60');
+  res.setHeader('Cache-Control', 'no-store');
 
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
 
@@ -115,11 +164,13 @@ module.exports = async (req, res) => {
     })
   );
 
-  const allItems = results
-    .filter(r => r.status === 'fulfilled')
-    .flatMap(r => r.value);
+  const allItems = filterRecent(
+    results
+      .filter(r => r.status === 'fulfilled')
+      .flatMap(r => r.value)
+  );
 
-  const items = diversify(allItems, 9);
+  const items = diversify(allItems, 15);
 
   return res.status(200).json({ items });
 };
