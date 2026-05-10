@@ -16,7 +16,7 @@ function matchParties(axes){
   const hasAny=Object.keys(axes).length>0;
   return PARTIES.map(p=>{
     if(!hasAny)return{...p,match:50};
-    const axKeys=["econ","soc","nat","climate","housing","health","fuel","animals","europe","culture","transport","crime","childcare","tax","employment","rural","lgbtq","gender","migration"];
+    const axKeys=["econ","soc","nat","climate","housing","health","fuel","animals","europe","culture","transport","crime","childcare","tax","employment","rural","lgbtq","gender","migration","immig","tech"];
     let diff=0,n=0;
     axKeys.forEach(ax=>{if(axes[ax]!==undefined){diff+=Math.abs(axes[ax]-p[ax]);n++;}});
     const avg=n>0?diff/n:3;
